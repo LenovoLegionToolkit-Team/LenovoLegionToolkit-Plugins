@@ -81,12 +81,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             foreach (var fanId in _fanIds)
             {
-                _capabilityIds[fanId] = fanId switch
-                {
-                    2 => CapabilityID.GpuCurrentFanSpeed,
-                    4 => CapabilityID.PchCurrentFanSpeed,
-                    _ => CapabilityID.CpuCurrentFanSpeed,
-                };
+                _capabilityIds[fanId] = GetCapabilityForFanId(fanId);
             }
 
             IsSupported = await CheckSupportAsync().ConfigureAwait(false);
@@ -96,12 +91,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             var tasks = new[] { 1, 2, 4 }.Select(async fanId =>
             {
-                var cid = fanId switch
-                {
-                    2 => CapabilityID.GpuCurrentFanSpeed,
-                    4 => CapabilityID.PchCurrentFanSpeed,
-                    _ => CapabilityID.CpuCurrentFanSpeed,
-                };
+                var cid = GetCapabilityForFanId(fanId);
 
                 var maxRpm = await ProbeMaxRpmAsync(cid).ConfigureAwait(false);
                 await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, 0).ConfigureAwait(false);
@@ -115,14 +105,18 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     _fanIds.Add(fanId);
                     _maxRpms[fanId] = maxRpm;
-                    _capabilityIds[fanId] = fanId switch
-                    {
-                        2 => CapabilityID.GpuCurrentFanSpeed,
-                        4 => CapabilityID.PchCurrentFanSpeed,
-                        _ => CapabilityID.CpuCurrentFanSpeed,
-                    };
                 }
             }
+        }
+
+        private static CapabilityID GetCapabilityForFanId(int fanId)
+        {
+            return fanId switch
+            {
+                2 => CapabilityID.GpuCurrentFanSpeed,
+                4 => CapabilityID.PchCurrentFanSpeed,
+                _ => CapabilityID.CpuCurrentFanSpeed,
+            };
         }
 
         private static async Task<int> ProbeMaxRpmAsync(CapabilityID cid)
