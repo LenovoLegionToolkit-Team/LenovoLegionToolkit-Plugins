@@ -55,10 +55,20 @@ public sealed class MyPluginProvider : IExtensionProvider
 1. [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 2. The core `LenovoLegionToolkit` repository must be cloned alongside this repository.
 
-### Build Instructions
-Build the plugin using the .NET CLI:
-```bat
-dotnet publish LenovoLegionToolkit.Plugin\CustomFanCurve -c Release -o BuildLLT\Plugins\CustomFanCurve
+### Build All Plugins
+```bash
+dotnet build LenovoLegionToolkit-Plugins.slnx -c Release
+```
+
+### Build a Single Plugin
+```bash
+dotnet build CustomFanCurve/CustomFanCurve.csproj -c Release
+dotnet build AssemblyVersionPatcher/AssemblyVersionPatcher.csproj -c Release
+```
+
+### Publish a Plugin for Deployment
+```bash
+dotnet publish CustomFanCurve/CustomFanCurve.csproj -c Release -o out/Plugins/CustomFanCurve
 ```
 
 Once compiled, deploy your `PluginName.dll` and its culture resource folders to the LLT plugins directory:

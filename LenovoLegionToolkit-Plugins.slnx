@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AssemblyVersionPatcher/AssemblyVersionPatcher.csproj" />
+  <Project Path="CustomFanCurve/CustomFanCurve.csproj" />
+</Solution>
