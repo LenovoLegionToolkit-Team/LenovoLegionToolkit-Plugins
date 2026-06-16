@@ -6,8 +6,21 @@ using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using LenovoLegionToolkit.Lib;
 
+using System.ComponentModel.DataAnnotations;
+using LenovoLegionToolkit.Plugin.CustomFanCurve.Resources;
+
 namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 {
+    public enum SensorSource
+    {
+        [Display(Name = "SensorSourceDefault", ResourceType = typeof(Resource))]
+        Default,
+        [Display(Name = "SensorSourceMaxCpuGpu", ResourceType = typeof(Resource))]
+        MaxCpuGpu,
+        [Display(Name = "SensorSourceAverageCpuGpu", ResourceType = typeof(Resource))]
+        AverageCpuGpu
+    }
+
     public class CurveNode : INotifyPropertyChanged
     {
         private float _temperature;
@@ -79,6 +92,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
+        private SensorSource _sensorSource = SensorSource.Default;
+        public SensorSource SensorSource
+        {
+            get => _sensorSource;
+            set
+            {
+                if (_sensorSource != value)
+                {
+                    _sensorSource = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public ObservableCollection<CurveNode> CurveNodes { get; set; } = new();
 
@@ -95,7 +122,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public string ExportToJson()
         {
-            return JsonConvert.SerializeObject(new { FanId, CurveNodes = CurveNodes.ToList() }, Formatting.Indented);
+            return JsonConvert.SerializeObject(new { FanId, SensorSource, CurveNodes = CurveNodes.ToList() }, Formatting.Indented);
         }
 
         public static CustomFanCurveEntry ImportFromJson(string json)
@@ -110,6 +137,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (data.FanId != null)
             {
                 entry.FanId = (int)data.FanId;
+            }
+
+            if (data.SensorSource != null)
+            {
+                entry.SensorSource = (SensorSource)Enum.Parse(typeof(SensorSource), (string)data.SensorSource, true);
             }
 
             if (data.CurveNodes != null)

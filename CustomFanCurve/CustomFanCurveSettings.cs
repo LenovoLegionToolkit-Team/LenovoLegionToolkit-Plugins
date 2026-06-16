@@ -43,6 +43,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int SafeMaxTemp { get; set; } = 90;
         public int SafeMaxPercentAtMaxTemp { get; set; } = 50;
 
+        public bool EnableAcousticOffset { get; set; } = false;
+        public int AcousticOffsetDeltaRpm { get; set; } = 100;
+        public int AcousticOffsetAddRpm { get; set; } = 150;
+        public int HysteresisDeadzoneTemp { get; set; } = 3;
+        public int DerivativeSpikeThreshold { get; set; } = 10;
+        public int DerivativeLookaheadSeconds { get; set; } = 2;
+
         public List<CustomFanCurveEntry> Entries { get; set; } = new();
     }
 }

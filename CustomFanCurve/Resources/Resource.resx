@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,15 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AccelResponse" xml:space="preserve">
-    <value>Acceleration Response (RPM/step)</value>
-  </data>
-  <data name="AccelResponseDesc" xml:space="preserve">
-    <value>Max RPM increase per step, default 25</value>
-  </data>
-  <data name="AccelResponseHint" xml:space="preserve">
-    <value>Max RPM increase per step</value>
-  </data>
   <data name="AddNodeTooltip" xml:space="preserve">
     <value>Add a new control point at the end of the curve</value>
   </data>
@@ -167,15 +158,6 @@
   </data>
   <data name="DebugModeDesc" xml:space="preserve">
     <value>Output detailed debug logs when enabled</value>
-  </data>
-  <data name="DecelResponse" xml:space="preserve">
-    <value>Deceleration Response (RPM/step)</value>
-  </data>
-  <data name="DecelResponseDesc" xml:space="preserve">
-    <value>Max RPM decrease per step, default 12</value>
-  </data>
-  <data name="DecelResponseHint" xml:space="preserve">
-    <value>Max RPM decrease per step</value>
   </data>
   <data name="DeleteNode" xml:space="preserve">
     <value>Delete this node</value>
@@ -233,12 +215,6 @@
   </data>
   <data name="ModeSwitchTitle" xml:space="preserve">
     <value>Power/Thermal Mode Switch Behavior</value>
-  </data>
-  <data name="Over50MinRpm" xml:space="preserve">
-    <value>Overheat full speed</value>
-  </data>
-  <data name="ProtectionAndResponse" xml:space="preserve">
-    <value>Protection &amp; Response</value>
   </data>
   <data name="RecoverCurve" xml:space="preserve">
     <value>Click to restore custom curve</value>
@@ -374,12 +350,90 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
     <value>Delay before writing to disk after dragging a curve node.</value>
   </data>
   <data name="SafeMinTemp" xml:space="preserve">
-    <value>Safe Min Bound (Low Temp °C)</value>
+    <value>Safe Minimum Temperature (°C)</value>
   </data>
   <data name="SafeMaxTemp" xml:space="preserve">
-    <value>Safe Min Bound (High Temp °C)</value>
+    <value>Safe Maximum Temperature (°C)</value>
   </data>
   <data name="SafeMaxPercentAtMaxTemp" xml:space="preserve">
-    <value>Safe Min Percent at High Temp (%)</value>
+    <value>Safe Minimum Fan Percentage (%)</value>
+  </data>
+  <data name="EnableAcousticOffset" xml:space="preserve">
+    <value>Enable Acoustic Offsetting</value>
+  </data>
+  <data name="AcousticOffsetDeltaRpm" xml:space="preserve">
+    <value>Acoustic Offset Delta (RPM)</value>
+  </data>
+  <data name="AcousticOffsetAddRpm" xml:space="preserve">
+    <value>Acoustic Offset Value (RPM)</value>
+  </data>
+  <data name="HysteresisDeadzoneTemp" xml:space="preserve">
+    <value>Hysteresis Deadzone Temp (°C)</value>
+  </data>
+  <data name="DerivativeSpikeThreshold" xml:space="preserve">
+    <value>Temperature Spike Threshold (°C/s)</value>
+  </data>
+  <data name="DerivativeLookaheadSeconds" xml:space="preserve">
+    <value>Predictive Lookahead (Seconds)</value>
+  </data>
+  <data name="SensorSource" xml:space="preserve">
+    <value>Sensor Source</value>
+  </data>
+  <data name="SensorSourceDesc" xml:space="preserve">
+    <value>Selects which hardware temperature this fan curve actively monitors and responds to.</value>
+  </data>
+  <data name="MathematicalConstants" xml:space="preserve">
+    <value>Thermal Safety &amp; Smoothing</value>
+  </data>
+  <data name="AcousticTuning" xml:space="preserve">
+    <value>Acoustic Tuning</value>
+  </data>
+  <data name="PredictiveEngine" xml:space="preserve">
+    <value>Predictive Engine</value>
+  </data>
+  <data name="Hysteresis" xml:space="preserve">
+    <value>Hysteresis</value>
+  </data>
+  <data name="EnableAcousticOffsetDesc" xml:space="preserve">
+    <value>Prevents annoying beat frequencies by shifting fan speeds when they are too similar.</value>
+  </data>
+  <data name="AcousticOffsetDeltaRpmDesc" xml:space="preserve">
+    <value>Maximum difference in RPM between fans before acoustic offsetting triggers.</value>
+  </data>
+  <data name="AcousticOffsetAddRpmDesc" xml:space="preserve">
+    <value>The exact RPM amount added to offset the secondary fan.</value>
+  </data>
+  <data name="HysteresisDeadzoneTempDesc" xml:space="preserve">
+    <value>Temperature padding to prevent fans from aggressively ramping up and down when hovering on a curve node.</value>
+  </data>
+  <data name="DerivativeSpikeThresholdDesc" xml:space="preserve">
+    <value>Sudden temperature spike rate required to activate predictive cooling.</value>
+  </data>
+  <data name="DerivativeLookaheadSecondsDesc" xml:space="preserve">
+    <value>How far into the future to predict temperatures when a spike is detected.</value>
+  </data>
+  <data name="EnableSpinUpDesc" xml:space="preserve">
+    <value>Briefly pulses the fans at high speed to overcome static friction before settling to low targets.</value>
+  </data>
+  <data name="ForceRefreshOnEnableDesc" xml:space="preserve">
+    <value>Immediately synchronizes the hardware cooling state when the custom curve is activated.</value>
+  </data>
+  <data name="SafeMinTempDesc" xml:space="preserve">
+    <value>The minimum bound for safe hardware temperature evaluation.</value>
+  </data>
+  <data name="SafeMaxTempDesc" xml:space="preserve">
+    <value>The critical maximum hardware temperature before the safety net forcefully overrides the fan curve.</value>
+  </data>
+  <data name="SafeMaxPercentAtMaxTempDesc" xml:space="preserve">
+    <value>The guaranteed minimum fan percentage when the hardware reaches the critical maximum temperature.</value>
+  </data>
+  <data name="SensorSourceDefault" xml:space="preserve">
+    <value>System Default (Auto)</value>
+  </data>
+  <data name="SensorSourceMaxCpuGpu" xml:space="preserve">
+    <value>Maximum of CPU / GPU</value>
+  </data>
+  <data name="SensorSourceAverageCpuGpu" xml:space="preserve">
+    <value>Average of CPU / GPU</value>
   </data>
 </root>

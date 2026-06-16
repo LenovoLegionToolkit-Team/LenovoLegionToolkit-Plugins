@@ -61,29 +61,47 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Acceleration Response (RPM/step).
+        ///   Looks up a localized string similar to Acoustic Offset Value (RPM).
         /// </summary>
-        public static string AccelResponse {
+        public static string AcousticOffsetAddRpm {
             get {
-                return ResourceManager.GetString("AccelResponse", resourceCulture);
+                return ResourceManager.GetString("AcousticOffsetAddRpm", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Max RPM increase per step, default 25.
+        ///   Looks up a localized string similar to The exact RPM amount added to offset the secondary fan..
         /// </summary>
-        public static string AccelResponseDesc {
+        public static string AcousticOffsetAddRpmDesc {
             get {
-                return ResourceManager.GetString("AccelResponseDesc", resourceCulture);
+                return ResourceManager.GetString("AcousticOffsetAddRpmDesc", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Max RPM increase per step.
+        ///   Looks up a localized string similar to Acoustic Offset Delta (RPM).
         /// </summary>
-        public static string AccelResponseHint {
+        public static string AcousticOffsetDeltaRpm {
             get {
-                return ResourceManager.GetString("AccelResponseHint", resourceCulture);
+                return ResourceManager.GetString("AcousticOffsetDeltaRpm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum difference in RPM between fans before acoustic offsetting triggers..
+        /// </summary>
+        public static string AcousticOffsetDeltaRpmDesc {
+            get {
+                return ResourceManager.GetString("AcousticOffsetDeltaRpmDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Acoustic Tuning.
+        /// </summary>
+        public static string AcousticTuning {
+            get {
+                return ResourceManager.GetString("AcousticTuning", resourceCulture);
             }
         }
         
@@ -223,38 +241,47 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Deceleration Response (RPM/step).
-        /// </summary>
-        public static string DecelResponse {
-            get {
-                return ResourceManager.GetString("DecelResponse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Max RPM decrease per step, default 12.
-        /// </summary>
-        public static string DecelResponseDesc {
-            get {
-                return ResourceManager.GetString("DecelResponseDesc", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Max RPM decrease per step.
-        /// </summary>
-        public static string DecelResponseHint {
-            get {
-                return ResourceManager.GetString("DecelResponseHint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Delete this node.
         /// </summary>
         public static string DeleteNode {
             get {
                 return ResourceManager.GetString("DeleteNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Predictive Lookahead (Seconds).
+        /// </summary>
+        public static string DerivativeLookaheadSeconds {
+            get {
+                return ResourceManager.GetString("DerivativeLookaheadSeconds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How far into the future to predict temperatures when a spike is detected..
+        /// </summary>
+        public static string DerivativeLookaheadSecondsDesc {
+            get {
+                return ResourceManager.GetString("DerivativeLookaheadSecondsDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature Spike Threshold (°C/s).
+        /// </summary>
+        public static string DerivativeSpikeThreshold {
+            get {
+                return ResourceManager.GetString("DerivativeSpikeThreshold", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sudden temperature spike rate required to activate predictive cooling..
+        /// </summary>
+        public static string DerivativeSpikeThresholdDesc {
+            get {
+                return ResourceManager.GetString("DerivativeSpikeThresholdDesc", resourceCulture);
             }
         }
         
@@ -273,6 +300,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string EmaAlphaDesc {
             get {
                 return ResourceManager.GetString("EmaAlphaDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Acoustic Offsetting.
+        /// </summary>
+        public static string EnableAcousticOffset {
+            get {
+                return ResourceManager.GetString("EnableAcousticOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prevents annoying beat frequencies by shifting fan speeds when they are too similar..
+        /// </summary>
+        public static string EnableAcousticOffsetDesc {
+            get {
+                return ResourceManager.GetString("EnableAcousticOffsetDesc", resourceCulture);
             }
         }
         
@@ -313,6 +358,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Briefly pulses the fans at high speed to overcome static friction before settling to low targets..
+        /// </summary>
+        public static string EnableSpinUpDesc {
+            get {
+                return ResourceManager.GetString("EnableSpinUpDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fan Speed.
         /// </summary>
         public static string FanSpeed {
@@ -327,6 +381,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string ForceRefreshOnEnable {
             get {
                 return ResourceManager.GetString("ForceRefreshOnEnable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Immediately synchronizes the hardware cooling state when the custom curve is activated..
+        /// </summary>
+        public static string ForceRefreshOnEnableDesc {
+            get {
+                return ResourceManager.GetString("ForceRefreshOnEnableDesc", resourceCulture);
             }
         }
         
@@ -385,6 +448,33 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hysteresis.
+        /// </summary>
+        public static string Hysteresis {
+            get {
+                return ResourceManager.GetString("Hysteresis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hysteresis Deadzone Temp (°C).
+        /// </summary>
+        public static string HysteresisDeadzoneTemp {
+            get {
+                return ResourceManager.GetString("HysteresisDeadzoneTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature padding to prevent fans from aggressively ramping up and down when hovering on a curve node..
+        /// </summary>
+        public static string HysteresisDeadzoneTempDesc {
+            get {
+                return ResourceManager.GetString("HysteresisDeadzoneTempDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignore Zero Temperature.
         /// </summary>
         public static string IgnoreZeroTemp {
@@ -408,6 +498,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string LiveMonitor {
             get {
                 return ResourceManager.GetString("LiveMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Thermal Safety &amp; Smoothing.
+        /// </summary>
+        public static string MathematicalConstants {
+            get {
+                return ResourceManager.GetString("MathematicalConstants", resourceCulture);
             }
         }
         
@@ -448,20 +547,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overheat full speed.
+        ///   Looks up a localized string similar to Predictive Engine.
         /// </summary>
-        public static string Over50MinRpm {
+        public static string PredictiveEngine {
             get {
-                return ResourceManager.GetString("Over50MinRpm", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Protection &amp; Response.
-        /// </summary>
-        public static string ProtectionAndResponse {
-            get {
-                return ResourceManager.GetString("ProtectionAndResponse", resourceCulture);
+                return ResourceManager.GetString("PredictiveEngine", resourceCulture);
             }
         }
         
@@ -511,7 +601,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Safe Min Percent at High Temp (%).
+        ///   Looks up a localized string similar to Safe Minimum Fan Percentage (%).
         /// </summary>
         public static string SafeMaxPercentAtMaxTemp {
             get {
@@ -520,7 +610,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Safe Min Bound (High Temp °C).
+        ///   Looks up a localized string similar to The guaranteed minimum fan percentage when the hardware reaches the critical maximum temperature..
+        /// </summary>
+        public static string SafeMaxPercentAtMaxTempDesc {
+            get {
+                return ResourceManager.GetString("SafeMaxPercentAtMaxTempDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe Maximum Temperature (°C).
         /// </summary>
         public static string SafeMaxTemp {
             get {
@@ -529,11 +628,29 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Safe Min Bound (Low Temp °C).
+        ///   Looks up a localized string similar to The critical maximum hardware temperature before the safety net forcefully overrides the fan curve..
+        /// </summary>
+        public static string SafeMaxTempDesc {
+            get {
+                return ResourceManager.GetString("SafeMaxTempDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe Minimum Temperature (°C).
         /// </summary>
         public static string SafeMinTemp {
             get {
                 return ResourceManager.GetString("SafeMinTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The minimum bound for safe hardware temperature evaluation..
+        /// </summary>
+        public static string SafeMinTempDesc {
+            get {
+                return ResourceManager.GetString("SafeMinTempDesc", resourceCulture);
             }
         }
         
@@ -588,6 +705,51 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string SensorPolling {
             get {
                 return ResourceManager.GetString("SensorPolling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sensor Source.
+        /// </summary>
+        public static string SensorSource {
+            get {
+                return ResourceManager.GetString("SensorSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Average of CPU / GPU.
+        /// </summary>
+        public static string SensorSourceAverageCpuGpu {
+            get {
+                return ResourceManager.GetString("SensorSourceAverageCpuGpu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System Default (Auto).
+        /// </summary>
+        public static string SensorSourceDefault {
+            get {
+                return ResourceManager.GetString("SensorSourceDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selects which hardware temperature this fan curve actively monitors and responds to..
+        /// </summary>
+        public static string SensorSourceDesc {
+            get {
+                return ResourceManager.GetString("SensorSourceDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum of CPU / GPU.
+        /// </summary>
+        public static string SensorSourceMaxCpuGpu {
+            get {
+                return ResourceManager.GetString("SensorSourceMaxCpuGpu", resourceCulture);
             }
         }
         

@@ -44,6 +44,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _safeMinTemp = s.SafeMinTemp;
             _safeMaxTemp = s.SafeMaxTemp;
             _safeMaxPercentAtMaxTemp = s.SafeMaxPercentAtMaxTemp;
+
+            _enableAcousticOffset = s.EnableAcousticOffset;
+            _acousticOffsetDeltaRpm = s.AcousticOffsetDeltaRpm;
+            _acousticOffsetAddRpm = s.AcousticOffsetAddRpm;
+            _hysteresisDeadzoneTemp = s.HysteresisDeadzoneTemp;
+            _derivativeSpikeThreshold = s.DerivativeSpikeThreshold;
+            _derivativeLookaheadSeconds = s.DerivativeLookaheadSeconds;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -79,6 +86,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.SafeMinTemp), _safeMinTemp);
             Save(nameof(CustomFanCurveSettings.SafeMaxTemp), _safeMaxTemp);
             Save(nameof(CustomFanCurveSettings.SafeMaxPercentAtMaxTemp), _safeMaxPercentAtMaxTemp);
+
+            Save(nameof(CustomFanCurveSettings.EnableAcousticOffset), _enableAcousticOffset);
+            Save(nameof(CustomFanCurveSettings.AcousticOffsetDeltaRpm), _acousticOffsetDeltaRpm);
+            Save(nameof(CustomFanCurveSettings.AcousticOffsetAddRpm), _acousticOffsetAddRpm);
+            Save(nameof(CustomFanCurveSettings.HysteresisDeadzoneTemp), _hysteresisDeadzoneTemp);
+            Save(nameof(CustomFanCurveSettings.DerivativeSpikeThreshold), _derivativeSpikeThreshold);
+            Save(nameof(CustomFanCurveSettings.DerivativeLookaheadSeconds), _derivativeLookaheadSeconds);
         }
 
         private void Save<T>(string name, T value) => _configManager.UpdateSetting(name, value);
@@ -424,6 +438,48 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             get => _safeMaxPercentAtMaxTemp;
             set { if (_safeMaxPercentAtMaxTemp != value) { _safeMaxPercentAtMaxTemp = value; OnPropertyChanged(); } }
+        }
+
+        private bool _enableAcousticOffset;
+        public bool EnableAcousticOffset
+        {
+            get => _enableAcousticOffset;
+            set { if (_enableAcousticOffset != value) { _enableAcousticOffset = value; OnPropertyChanged(); } }
+        }
+
+        private int _acousticOffsetDeltaRpm;
+        public int AcousticOffsetDeltaRpm
+        {
+            get => _acousticOffsetDeltaRpm;
+            set { var v = Math.Max(0, value); if (_acousticOffsetDeltaRpm != v) { _acousticOffsetDeltaRpm = v; OnPropertyChanged(); } }
+        }
+
+        private int _acousticOffsetAddRpm;
+        public int AcousticOffsetAddRpm
+        {
+            get => _acousticOffsetAddRpm;
+            set { var v = Math.Max(0, value); if (_acousticOffsetAddRpm != v) { _acousticOffsetAddRpm = v; OnPropertyChanged(); } }
+        }
+
+        private int _hysteresisDeadzoneTemp;
+        public int HysteresisDeadzoneTemp
+        {
+            get => _hysteresisDeadzoneTemp;
+            set { var v = Math.Max(0, value); if (_hysteresisDeadzoneTemp != v) { _hysteresisDeadzoneTemp = v; OnPropertyChanged(); } }
+        }
+
+        private int _derivativeSpikeThreshold;
+        public int DerivativeSpikeThreshold
+        {
+            get => _derivativeSpikeThreshold;
+            set { var v = Math.Max(0, value); if (_derivativeSpikeThreshold != v) { _derivativeSpikeThreshold = v; OnPropertyChanged(); } }
+        }
+
+        private int _derivativeLookaheadSeconds;
+        public int DerivativeLookaheadSeconds
+        {
+            get => _derivativeLookaheadSeconds;
+            set { var v = Math.Max(0, value); if (_derivativeLookaheadSeconds != v) { _derivativeLookaheadSeconds = v; OnPropertyChanged(); } }
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

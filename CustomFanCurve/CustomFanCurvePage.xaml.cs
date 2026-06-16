@@ -55,8 +55,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             _fanControlStackPanel.Children.Clear(); _fanControls.Clear(); _fanSelector.Items.Clear();
 
-            foreach (var fanId in _fanIds)
+            for (int i = 0; i < _fanIds.Count; i++)
             {
+                var fanId = _fanIds[i];
                 var entry = _configManager.GetEntry(fanId);
                 if (entry == null)
                 {
@@ -74,7 +75,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 _fanControls.Add(control);
                 _fanControlStackPanel.Children.Add(control);
 
-                _fanSelector.Items.Add($"Fan {fanId}");
+                string fanName;
+                if (i == 0) fanName = Resource.CpuFan;
+                else if (i == 1) fanName = Resource.GpuFan;
+                else fanName = Resource.SystemFan;
+
+                _fanSelector.Items.Add(fanName);
             }
             if (_fanSelector.Items.Count > 0) _fanSelector.SelectedIndex = 0;
         }

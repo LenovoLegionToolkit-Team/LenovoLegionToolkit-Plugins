@@ -10,6 +10,7 @@
     d:DesignHeight="600" d:DesignWidth="800"
     FlowDirection="LeftToRight">
     <UserControl.Resources>
+        <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter" />
         <Style x:Key="NodeTextBox" TargetType="TextBox">
             <Setter Property="Width" Value="64"/>
             <Setter Property="Height" Value="28"/>
@@ -196,6 +197,26 @@
                                  Value="{Binding CurrentRpmValue}"
                                  Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
                                  Background="{DynamicResource ControlFillColorDefaultBrush}" BorderThickness="0"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="2" Padding="14,12"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{x:Static res:Resource.SensorSource}"/>
+                    <TextBlock Text="{x:Static res:Resource.SensorSourceDesc}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                    <ComboBox x:Name="_sensorSourceSelector" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding SensorSources}"
+                              SelectedItem="{Binding SensorSource, Mode=TwoWay}"
+                              Background="Transparent" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                              Padding="8,6" FontSize="13">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
         </Grid>

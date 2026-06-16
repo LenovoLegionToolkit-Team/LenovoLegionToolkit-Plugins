@@ -80,6 +80,22 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private string _actualRpmDisplay = "--";
         public string ActualRpmDisplay { get => _actualRpmDisplay; set { _actualRpmDisplay = value; OnPropertyChanged(); } }
 
+        public IEnumerable<SensorSource> SensorSources => Enum.GetValues(typeof(SensorSource)).Cast<SensorSource>();
+
+        public SensorSource SensorSource
+        {
+            get => _entry.SensorSource;
+            set
+            {
+                if (_entry.SensorSource != value)
+                {
+                    _entry.SensorSource = value;
+                    OnPropertyChanged();
+                    _ = _configManager.SaveEntryAsync(_entry);
+                }
+            }
+        }
+
         private string _targetRpmDisplay = "--";
         public string TargetRpmDisplay { get => _targetRpmDisplay; set { _targetRpmDisplay = value; OnPropertyChanged(); } }
 

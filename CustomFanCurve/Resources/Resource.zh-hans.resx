@@ -117,15 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AccelResponse" xml:space="preserve">
-    <value>加速响应 (RPM/步)</value>
-  </data>
-  <data name="AccelResponseDesc" xml:space="preserve">
-    <value>每步允许的最大 RPM 上升量，默认 25</value>
-  </data>
-  <data name="AccelResponseHint" xml:space="preserve">
-    <value>每步最大RPM上升量</value>
-  </data>
   <data name="AddNodeTooltip" xml:space="preserve">
     <value>在曲线末尾添加一个新的控制节点</value>
   </data>
@@ -167,15 +158,6 @@
   </data>
   <data name="DebugModeDesc" xml:space="preserve">
     <value>启用后将输出详细的调试日志</value>
-  </data>
-  <data name="DecelResponse" xml:space="preserve">
-    <value>减速响应 (RPM/步)</value>
-  </data>
-  <data name="DecelResponseDesc" xml:space="preserve">
-    <value>每步允许的最大 RPM 下降量，默认 12</value>
-  </data>
-  <data name="DecelResponseHint" xml:space="preserve">
-    <value>每步最大RPM下降量</value>
   </data>
   <data name="DeleteNode" xml:space="preserve">
     <value>删除此节点</value>
@@ -233,12 +215,6 @@
   </data>
   <data name="ModeSwitchTitle" xml:space="preserve">
     <value>电源/散热模式切换行为</value>
-  </data>
-  <data name="Over50MinRpm" xml:space="preserve">
-    <value>超过时全速运转</value>
-  </data>
-  <data name="ProtectionAndResponse" xml:space="preserve">
-    <value>保护与响应参数</value>
   </data>
   <data name="RecoverCurve" xml:space="preserve">
     <value>点击恢复自定义曲线</value>
