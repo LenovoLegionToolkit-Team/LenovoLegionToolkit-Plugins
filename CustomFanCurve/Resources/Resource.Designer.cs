@@ -25,13 +25,18 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
     public class Resource {
         
         private static global::System.Resources.ResourceManager resourceMan;
-        
-        private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
+        private static global::System.Globalization.CultureInfo _resourceCulture;
+
+        private static global::System.Globalization.CultureInfo resourceCulture
+        {
+            get { return _resourceCulture ?? LenovoLegionToolkit.Lib.Resources.Resource.Culture; }
+        }
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Resource() {
         }
-        
+
         /// <summary>
         ///   返回此类使用的缓存的 ResourceManager 实例。
         /// </summary>
@@ -45,7 +50,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   重写当前线程的 CurrentUICulture 属性，对
         ///   使用此强类型资源类的所有资源查找执行重写。
@@ -53,10 +58,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         public static global::System.Globalization.CultureInfo Culture {
             get {
-                return resourceCulture;
+                return _resourceCulture;
             }
             set {
-                resourceCulture = value;
+                _resourceCulture = value;
             }
         }
         

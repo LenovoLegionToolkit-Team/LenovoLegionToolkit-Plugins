@@ -96,9 +96,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             ControlService = new CustomFanCurveService(ConfigManager, _hardware, _sensorProvider, Monitoring);
 
-            var realCulture = LenovoLegionToolkit.Lib.Resources.Resource.Culture ?? System.Threading.Thread.CurrentThread.CurrentUICulture;
-            LenovoLegionToolkit.Plugin.CustomFanCurve.Resources.Resource.Culture = realCulture;
-
             context.Navigation.Register(new ExtensionNavigationItem
             {
                 Id = "custom-fan-curve-wmi",
