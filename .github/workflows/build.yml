@@ -24,6 +24,7 @@ jobs:
       with:
         repository: 'LenovoLegionToolkit-Team/LenovoLegionToolkit'
         path: 'core-app'
+        ref: 'dev'
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
