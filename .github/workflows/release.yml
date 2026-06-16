@@ -31,6 +31,8 @@ jobs:
     steps:
     - name: Checkout Plugins
       uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
       
     - name: Checkout Core App
       uses: actions/checkout@v5
@@ -94,6 +96,45 @@ jobs:
         "tag_name=$tagName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: powershell
 
+    - name: Determine Changed Plugins
+      id: changed_plugins
+      env:
+        TAG_NAME: ${{ steps.release_meta.outputs.tag_name }}
+      run: |
+        $changedPlugins = @()
+        
+        # Check if the tag exists
+        $tagExists = git rev-parse $env:TAG_NAME 2>$null
+        if ($tagExists) {
+            Write-Host "Comparing HEAD against existing tag: $env:TAG_NAME"
+            $changedFiles = git diff --name-only $env:TAG_NAME HEAD
+            
+            if ($changedFiles) {
+                # Extract top-level directories from changed files
+                $dirs = $changedFiles | ForEach-Object { ($_.Split('/'))[0] } | Select-Object -Unique
+                
+                # Filter to only valid plugin directories
+                foreach ($dir in $dirs) {
+                    if (Test-Path "$dir\$dir.csproj") {
+                        $changedPlugins += $dir
+                    }
+                }
+            }
+        } else {
+            Write-Host "Tag $env:TAG_NAME not found locally. This might be the first release."
+        }
+        
+        $eof = "EOF"
+        "body_addendum<<$eof" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        if ($changedPlugins.Count -gt 0) {
+            $pluginsList = $changedPlugins | ForEach-Object { "- $_" }
+            $pluginsListStr = $pluginsList -join "`n"
+            $addendum = "`n### Updated Plugins:`n$pluginsListStr"
+            $addendum | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+        "$eof" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      shell: powershell
+
     - name: Restore Plugins
       run: dotnet restore LenovoLegionToolkit-Plugins.slnx
       
@@ -147,6 +188,7 @@ jobs:
         body: |
           ## Plugins Update
           Channel: ${{ steps.release_meta.outputs.channel }}
+          ${{ steps.changed_plugins.outputs.body_addendum }}
         files: build_out/*.zip
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Upload artifact
