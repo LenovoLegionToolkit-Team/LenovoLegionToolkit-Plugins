@@ -53,7 +53,16 @@ public sealed class MyPluginProvider : IExtensionProvider
 
 ### Prerequisites
 1. [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-2. The core `LenovoLegionToolkit` repository must be cloned alongside this repository.
+2. The core `LenovoLegionToolkit` repository must be cloned locally.
+3. Set the `LLT_SOURCE` environment variable to point to the core repo root.
+
+```bash
+# System environment variable (recommended)
+setx LLT_SOURCE "D:\Repo\LenovoLegionToolkit"
+
+# Or per-session
+set LLT_SOURCE=D:\Repo\LenovoLegionToolkit
+```
 
 ### Build All Plugins
 ```bash
