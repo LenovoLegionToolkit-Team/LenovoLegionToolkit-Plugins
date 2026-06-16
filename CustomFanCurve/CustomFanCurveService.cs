@@ -39,7 +39,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly Dictionary<int, long> _lastCalcTick = new();
         private readonly Dictionary<int, string> _lastFingerprint = new();
 
+        private readonly TaskCompletionSource _initTcs = new();
         private readonly SemaphoreSlim _modeLock = new(1, 1);
+
+        public Task InitializationTask => _initTcs.Task;
 
         public bool IsActive
         {
@@ -93,6 +96,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             await _hardware.InitializeAsync().ConfigureAwait(false);
             _configManager.EnsureEntriesForFans(_hardware.AvailableFanIds);
             await ReevaluateStateAsync();
+            _initTcs.TrySetResult();
         }
 
         public void OnUIOpened()

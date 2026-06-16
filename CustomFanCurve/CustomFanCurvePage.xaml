@@ -6,6 +6,11 @@
       Title="{x:Static res:Resource.WindowTitle}"
       Background="{DynamicResource ApplicationPageBackgroundThemeBrush}">
     <Page.Resources>
+        <Storyboard x:Key="SpinnerStoryboard" RepeatBehavior="Forever" Duration="0:0:1.5">
+            <DoubleAnimation Storyboard.TargetName="_spinner"
+                             Storyboard.TargetProperty="(Border.RenderTransform).(RotateTransform.Angle)"
+                             From="0" To="360" Duration="0:0:1.5"/>
+        </Storyboard>
         <Style x:Key="ToolBarButton" TargetType="Button">
             <Setter Property="Height" Value="36"/><Setter Property="MinWidth" Value="110"/>
             <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
@@ -102,6 +107,19 @@
             </Grid>
         </Border>
 
-        <StackPanel x:Name="_fanControlStackPanel" Grid.Row="1"/>
+        <Grid x:Name="_loadingOverlay" Grid.Row="1" Visibility="Collapsed"
+              Background="{DynamicResource ApplicationPageBackgroundThemeBrush}">
+            <Border x:Name="_spinner" Width="40" Height="40" CornerRadius="20"
+                    BorderBrush="{DynamicResource AccentFillColorDefaultBrush}"
+                    BorderThickness="4" HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <RotateTransform/>
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <StackPanel x:Name="_fanControlStackPanel" Grid.Row="1" Visibility="Collapsed"/>
     </Grid>
 </Page>

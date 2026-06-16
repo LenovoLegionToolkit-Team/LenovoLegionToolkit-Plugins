@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,8 +38,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _monitoring = provider.Monitoring;
             _fanIds = provider.AvailableFanIds;
 
+            _loadingOverlay.Visibility = Visibility.Visible;
+            var sb = (System.Windows.Media.Animation.Storyboard)FindResource("SpinnerStoryboard");
+            sb.Begin();
+
+            await _controlService.InitializationTask;
+            _fanIds = provider.AvailableFanIds;
             _controlService.OnUIOpened();
             await LoadFanControlsAsync();
+            sb.Stop();
+            _loadingOverlay.Visibility = Visibility.Collapsed;
+            _fanControlStackPanel.Visibility = Visibility.Visible;
             _enableCustomFanToggle.IsChecked = _configManager.Settings.IsCustomFanEnabled;
         }
 
