@@ -42,5 +42,26 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             return (int)Math.Round(targetPercent / 100.0 * maxRpm);
         }
+
+        public static int GetSafeMinPercent(float temperature)
+        {
+            var settings = CustomFanCurveProvider.InstanceConfigManager?.Settings;
+            if (settings == null)
+            {
+                if (temperature <= 75) return 0;
+                if (temperature >= 90) return 50;
+                var r = (temperature - 75) / 15.0;
+                return (int)Math.Round(r * 50);
+            }
+
+            if (temperature <= settings.SafeMinTemp) return 0;
+            if (temperature >= settings.SafeMaxTemp) return settings.SafeMaxPercentAtMaxTemp;
+            
+            float tempRange = settings.SafeMaxTemp - settings.SafeMinTemp;
+            if (tempRange <= 0) return settings.SafeMaxPercentAtMaxTemp;
+            
+            var ratio = (temperature - settings.SafeMinTemp) / tempRange;
+            return (int)Math.Round(ratio * settings.SafeMaxPercentAtMaxTemp);
+        }
     }
 }

@@ -319,6 +319,70 @@
                                     </Grid>
                                 </StackPanel>
                             </Border>
+                            <TextBlock Style="{StaticResource SubHeader}" Text="Mathematical Constants"/>
+                            <Border Style="{StaticResource InfoCard}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.EmaAlpha}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            <TextBlock Text="{x:Static res:Resource.EmaAlphaDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding EmaAlpha, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.StepDownRate}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            <TextBlock Text="{x:Static res:Resource.StepDownRateDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding StepDownRateRpmPerSec, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.StepDownSpamDelta}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            <TextBlock Text="{x:Static res:Resource.StepDownSpamDeltaDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding StepDownSpamProtectionDelta, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.UiDebounceDelay}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            <TextBlock Text="{x:Static res:Resource.UiDebounceDelayDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding UiDebounceDelayMs, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.SafeMinTemp}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding SafeMinTemp, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.SafeMaxTemp}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding SafeMaxTemp, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Static res:Resource.SafeMaxPercentAtMaxTemp}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBox Grid.Column="1" Style="{StaticResource SettingsTextBox}" Text="{Binding SafeMaxPercentAtMaxTemp, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

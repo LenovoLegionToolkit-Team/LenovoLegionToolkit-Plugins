@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -348,5 +348,38 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   </data>
   <data name="SystemFan" xml:space="preserve">
     <value>System Fan</value>
+  </data>
+  <data name="EmaAlpha" xml:space="preserve">
+    <value>Temperature Smoothing (EMA Alpha)</value>
+  </data>
+  <data name="EmaAlphaDesc" xml:space="preserve">
+    <value>Weight of new temperature readings. Lower = smoother but slower.</value>
+  </data>
+  <data name="StepDownRate" xml:space="preserve">
+    <value>Step-Down Glide Rate (RPM/sec)</value>
+  </data>
+  <data name="StepDownRateDesc" xml:space="preserve">
+    <value>Maximum RPM drop per second while cooling down.</value>
+  </data>
+  <data name="StepDownSpamDelta" xml:space="preserve">
+    <value>Step-Down Protection Delta (RPM)</value>
+  </data>
+  <data name="StepDownSpamDeltaDesc" xml:space="preserve">
+    <value>Minimum RPM drop required before sending a hardware command.</value>
+  </data>
+  <data name="UiDebounceDelay" xml:space="preserve">
+    <value>UI Save Debounce Delay (ms)</value>
+  </data>
+  <data name="UiDebounceDelayDesc" xml:space="preserve">
+    <value>Delay before writing to disk after dragging a curve node.</value>
+  </data>
+  <data name="SafeMinTemp" xml:space="preserve">
+    <value>Safe Min Bound (Low Temp °C)</value>
+  </data>
+  <data name="SafeMaxTemp" xml:space="preserve">
+    <value>Safe Min Bound (High Temp °C)</value>
+  </data>
+  <data name="SafeMaxPercentAtMaxTemp" xml:space="preserve">
+    <value>Safe Min Percent at High Temp (%)</value>
   </data>
 </root>

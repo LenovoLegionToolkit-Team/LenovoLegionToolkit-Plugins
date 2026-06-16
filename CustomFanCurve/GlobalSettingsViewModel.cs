@@ -36,6 +36,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _uiUpdateIntervalMs = s.UiUpdateIntervalMs;
             _useCachedSnapshotForForcedRefresh = s.UseCachedSnapshotForForcedRefresh;
             _enableMaxFanWriteEachCycle = s.EnableMaxFanWriteEachCycle;
+            
+            _emaAlpha = s.EmaAlpha;
+            _stepDownRateRpmPerSec = s.StepDownRateRpmPerSec;
+            _stepDownSpamProtectionDelta = s.StepDownSpamProtectionDelta;
+            _uiDebounceDelayMs = s.UiDebounceDelayMs;
+            _safeMinTemp = s.SafeMinTemp;
+            _safeMaxTemp = s.SafeMaxTemp;
+            _safeMaxPercentAtMaxTemp = s.SafeMaxPercentAtMaxTemp;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -63,6 +71,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.UiUpdateIntervalMs), _uiUpdateIntervalMs);
             Save(nameof(CustomFanCurveSettings.UseCachedSnapshotForForcedRefresh), _useCachedSnapshotForForcedRefresh);
             Save(nameof(CustomFanCurveSettings.EnableMaxFanWriteEachCycle), _enableMaxFanWriteEachCycle);
+            
+            Save(nameof(CustomFanCurveSettings.EmaAlpha), _emaAlpha);
+            Save(nameof(CustomFanCurveSettings.StepDownRateRpmPerSec), _stepDownRateRpmPerSec);
+            Save(nameof(CustomFanCurveSettings.StepDownSpamProtectionDelta), _stepDownSpamProtectionDelta);
+            Save(nameof(CustomFanCurveSettings.UiDebounceDelayMs), _uiDebounceDelayMs);
+            Save(nameof(CustomFanCurveSettings.SafeMinTemp), _safeMinTemp);
+            Save(nameof(CustomFanCurveSettings.SafeMaxTemp), _safeMaxTemp);
+            Save(nameof(CustomFanCurveSettings.SafeMaxPercentAtMaxTemp), _safeMaxPercentAtMaxTemp);
         }
 
         private void Save<T>(string name, T value) => _configManager.UpdateSetting(name, value);
@@ -361,7 +377,56 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        private double _emaAlpha;
+        public double EmaAlpha
+        {
+            get => _emaAlpha;
+            set { if (_emaAlpha != value) { _emaAlpha = value; OnPropertyChanged(); } }
+        }
+
+        private int _stepDownRateRpmPerSec;
+        public int StepDownRateRpmPerSec
+        {
+            get => _stepDownRateRpmPerSec;
+            set { if (_stepDownRateRpmPerSec != value) { _stepDownRateRpmPerSec = value; OnPropertyChanged(); } }
+        }
+
+        private int _stepDownSpamProtectionDelta;
+        public int StepDownSpamProtectionDelta
+        {
+            get => _stepDownSpamProtectionDelta;
+            set { if (_stepDownSpamProtectionDelta != value) { _stepDownSpamProtectionDelta = value; OnPropertyChanged(); } }
+        }
+
+        private int _uiDebounceDelayMs;
+        public int UiDebounceDelayMs
+        {
+            get => _uiDebounceDelayMs;
+            set { if (_uiDebounceDelayMs != value) { _uiDebounceDelayMs = value; OnPropertyChanged(); } }
+        }
+
+        private int _safeMinTemp;
+        public int SafeMinTemp
+        {
+            get => _safeMinTemp;
+            set { if (_safeMinTemp != value) { _safeMinTemp = value; OnPropertyChanged(); } }
+        }
+
+        private int _safeMaxTemp;
+        public int SafeMaxTemp
+        {
+            get => _safeMaxTemp;
+            set { if (_safeMaxTemp != value) { _safeMaxTemp = value; OnPropertyChanged(); } }
+        }
+
+        private int _safeMaxPercentAtMaxTemp;
+        public int SafeMaxPercentAtMaxTemp
+        {
+            get => _safeMaxPercentAtMaxTemp;
+            set { if (_safeMaxPercentAtMaxTemp != value) { _safeMaxPercentAtMaxTemp = value; OnPropertyChanged(); } }
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 {
@@ -9,6 +11,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly PluginSettings _store;
         private CustomFanCurveSettings _settings;
         private readonly object _lock = new();
+        private readonly SemaphoreSlim _asyncLock = new(1, 1);
 
         public CustomFanCurveSettings Settings => _settings;
         public event Action? SettingsChanged;
@@ -78,6 +81,27 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 _settings.Entries.Add(entry);
                 _store.Save(_settings);
                 SettingsChanged?.Invoke();
+            }
+        }
+
+        public async Task SaveEntryAsync(CustomFanCurveEntry entry)
+        {
+            await _asyncLock.WaitAsync();
+            try
+            {
+                lock (_lock)
+                {
+                    var existing = _settings.Entries.FirstOrDefault(e => e.FanId == entry.FanId);
+                    if (existing != null) _settings.Entries.Remove(existing);
+                    _settings.Entries.Add(entry);
+                }
+                
+                await _store.SaveAsync(_settings);
+                SettingsChanged?.Invoke();
+            }
+            finally
+            {
+                _asyncLock.Release();
             }
         }
 

@@ -259,6 +259,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Temperature Smoothing (EMA Alpha).
+        /// </summary>
+        public static string EmaAlpha {
+            get {
+                return ResourceManager.GetString("EmaAlpha", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weight of new temperature readings. Lower = smoother but slower..
+        /// </summary>
+        public static string EmaAlphaDesc {
+            get {
+                return ResourceManager.GetString("EmaAlphaDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable Custom Fan Curve.
         /// </summary>
         public static string EnableCurve {
@@ -493,6 +511,33 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Safe Min Percent at High Temp (%).
+        /// </summary>
+        public static string SafeMaxPercentAtMaxTemp {
+            get {
+                return ResourceManager.GetString("SafeMaxPercentAtMaxTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe Min Bound (High Temp °C).
+        /// </summary>
+        public static string SafeMaxTemp {
+            get {
+                return ResourceManager.GetString("SafeMaxTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe Min Bound (Low Temp °C).
+        /// </summary>
+        public static string SafeMinTemp {
+            get {
+                return ResourceManager.GetString("SafeMinTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Save.
         /// </summary>
         public static string Save {
@@ -620,6 +665,42 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Step-Down Glide Rate (RPM/sec).
+        /// </summary>
+        public static string StepDownRate {
+            get {
+                return ResourceManager.GetString("StepDownRate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum RPM drop per second while cooling down..
+        /// </summary>
+        public static string StepDownRateDesc {
+            get {
+                return ResourceManager.GetString("StepDownRateDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Step-Down Protection Delta (RPM).
+        /// </summary>
+        public static string StepDownSpamDelta {
+            get {
+                return ResourceManager.GetString("StepDownSpamDelta", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum RPM drop required before sending a hardware command..
+        /// </summary>
+        public static string StepDownSpamDeltaDesc {
+            get {
+                return ResourceManager.GetString("StepDownSpamDeltaDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to System Fan.
         /// </summary>
         public static string SystemFan {
@@ -688,6 +769,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string UiAndMonitoring {
             get {
                 return ResourceManager.GetString("UiAndMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UI Save Debounce Delay (ms).
+        /// </summary>
+        public static string UiDebounceDelay {
+            get {
+                return ResourceManager.GetString("UiDebounceDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delay before writing to disk after dragging a curve node..
+        /// </summary>
+        public static string UiDebounceDelayDesc {
+            get {
+                return ResourceManager.GetString("UiDebounceDelayDesc", resourceCulture);
             }
         }
         

@@ -71,6 +71,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         private readonly CustomFanHardware _hardware;
 
+        public static CustomFanCurveConfigManager? InstanceConfigManager { get; private set; }
         public CustomFanCurveConfigManager ConfigManager { get; private set; }
         internal CustomFanCurveService ControlService { get; private set; }
         public ICustomFanMonitoringService Monitoring { get; private set; }
@@ -89,6 +90,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var storagePath = context.GetPluginStoragePath("CustomFanCurve");
             _pluginSettings = new PluginSettings(storagePath);
             ConfigManager = new CustomFanCurveConfigManager(_pluginSettings);
+            InstanceConfigManager = ConfigManager;
             Logger.Init(ConfigManager);
 
             _sensorProvider = new SensorProvider(IoCContainer.Resolve<SensorsGroupController>());

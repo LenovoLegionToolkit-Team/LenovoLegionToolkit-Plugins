@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -33,11 +34,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private int _uiOpenCount;
         private long _lastUiUpdateTick;
 
-        private readonly Dictionary<int, int> _lastAppliedRpm = new();
-        private readonly Dictionary<int, float> _lastTemp = new();
-        private readonly Dictionary<int, int> _lastCalcRpm = new();
-        private readonly Dictionary<int, long> _lastCalcTick = new();
-        private readonly Dictionary<int, string> _lastFingerprint = new();
+        private readonly ConcurrentDictionary<int, int> _lastAppliedRpm = new();
+        private readonly ConcurrentDictionary<int, float> _lastTemp = new();
+        private readonly ConcurrentDictionary<int, int> _lastCalcRpm = new();
+        private readonly ConcurrentDictionary<int, long> _lastCalcTick = new();
+        private readonly ConcurrentDictionary<int, string> _lastFingerprint = new();
+        private readonly ConcurrentDictionary<int, double> _emaTemp = new();
+        private readonly ConcurrentDictionary<int, int> _lastIdealRpm = new();
 
         private readonly TaskCompletionSource _initTcs = new();
         private readonly SemaphoreSlim _modeLock = new(1, 1);
@@ -243,43 +246,75 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var now = DateTime.UtcNow.Ticks;
             var delayTicks = TimeSpan.FromMilliseconds(settings.CalculationDelayMs).Ticks;
 
+            // EMA Smoothing
+            double alpha = settings.EmaAlpha;
+            double smoothedTemp = _emaTemp.TryGetValue(fanId, out var lastEma)
+                ? (temp * alpha) + (lastEma * (1.0 - alpha))
+                : temp;
+            _emaTemp[fanId] = smoothedTemp;
+            
+            float calcTemp = (float)smoothedTemp;
+
             _lastCalcTick.TryGetValue(fanId, out var lastTick);
             _lastTemp.TryGetValue(fanId, out var lastTemp);
             _lastCalcRpm.TryGetValue(fanId, out var cachedRpm);
 
             var elapsed = !_lastCalcTick.ContainsKey(fanId) || now - lastTick >= delayTicks;
-            var tempDelta = _lastTemp.ContainsKey(fanId) ? Math.Abs(lastTemp - temp) : double.MaxValue;
+            var tempDelta = _lastTemp.ContainsKey(fanId) ? Math.Abs(lastTemp - calcTemp) : double.MaxValue;
 
             var fp = string.Join("|", entry.CurveNodes.OrderBy(n => n.Temperature).Select(n => $"{n.Temperature:F1}:{n.TargetPercent}"));
             _lastFingerprint.TryGetValue(fanId, out var lastFp);
             if (lastFp != fp)
             {
                 _lastFingerprint[fanId] = fp;
-                _lastCalcRpm.Remove(fanId);
-                _lastTemp.Remove(fanId);
-                _lastCalcTick.Remove(fanId);
+                _lastCalcRpm.TryRemove(fanId, out _);
+                _lastTemp.TryRemove(fanId, out _);
+                _lastCalcTick.TryRemove(fanId, out _);
+                _lastIdealRpm.TryRemove(fanId, out _);
                 cachedRpm = 0;
                 lastTemp = 0;
                 elapsed = true;
             }
 
-            var needRecalc = !_lastTemp.ContainsKey(fanId) || !_lastCalcRpm.ContainsKey(fanId)
+            bool isSteppingDown = _lastIdealRpm.ContainsKey(fanId) && _lastCalcRpm.ContainsKey(fanId) && _lastIdealRpm[fanId] < _lastCalcRpm[fanId];
+
+            var needRecalc = !_lastTemp.ContainsKey(fanId) || !_lastCalcRpm.ContainsKey(fanId) || isSteppingDown
                 || (elapsed && (tempDelta >= settings.TemperatureDeltaThreshold
                     || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
-            if (!elapsed && _lastCalcRpm.ContainsKey(fanId))
+            if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
 
             int targetRpm;
             if (needRecalc)
             {
-                var r = CustomFanCurveCalculator.Calculate(entry, temp, _hardware.GetMaxRpm(fanId));
+                var r = CustomFanCurveCalculator.Calculate(entry, calcTemp, _hardware.GetMaxRpm(fanId));
                 if (!r.HasValue) return;
 
-                targetRpm = Math.Min(r.Value, _hardware.GetMaxRpm(fanId));
-                if (temp > 50)
-                    targetRpm = Math.Max(targetRpm, _hardware.GetMinRpm(fanId));
+                int idealRpm = Math.Min(r.Value, _hardware.GetMaxRpm(fanId));
+                int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(calcTemp);
+                int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
+                idealRpm = Math.Max(idealRpm, safeMinRpm);
 
-                _lastTemp[fanId] = temp;
+                _lastIdealRpm[fanId] = idealRpm;
+
+                // Asymmetric Step-Down
+                int currentRpm = _lastCalcRpm.ContainsKey(fanId) ? _lastCalcRpm[fanId] : idealRpm;
+                targetRpm = idealRpm;
+
+                if (idealRpm < currentRpm)
+                {
+                    double dtSeconds = (now - lastTick) / (double)TimeSpan.TicksPerSecond;
+                    int maxDrop = (int)(settings.StepDownRateRpmPerSec * dtSeconds);
+                    targetRpm = Math.Max(idealRpm, currentRpm - maxDrop);
+                }
+
+                int minRpm = _hardware.GetMinRpm(fanId);
+                if (targetRpm > 0 && targetRpm < minRpm)
+                {
+                    targetRpm = idealRpm == 0 ? 0 : minRpm;
+                }
+
+                _lastTemp[fanId] = calcTemp;
                 _lastCalcRpm[fanId] = targetRpm;
                 _lastCalcTick[fanId] = now;
             }
@@ -294,8 +329,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             var hadLast = _lastAppliedRpm.TryGetValue(fanId, out var lastApplied);
             var delta = hadLast ? Math.Abs(lastApplied - targetRpm) : int.MaxValue;
-            var shouldWrite = settings.AlwaysWriteRpm || (settings.ForceWriteWhenRpmZero && rpm == 0)
-                || !hadLast || delta >= settings.MinimumRpmChangeToApply;
+            
+            var requiredDelta = isSteppingDown ? settings.StepDownSpamProtectionDelta : settings.MinimumRpmChangeToApply;
+            
+            var shouldWrite = (!isSteppingDown && settings.AlwaysWriteRpm) 
+                || (settings.ForceWriteWhenRpmZero && rpm == 0)
+                || !hadLast || delta >= requiredDelta;
 
             if (shouldWrite)
             {

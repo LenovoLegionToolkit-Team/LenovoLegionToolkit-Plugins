@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using LenovoLegionToolkit.Lib;
@@ -17,6 +19,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ICustomFanMonitoringService _monitoring;
         private int _fanId;
         private double _graphWidth, _graphHeight;
+        private CancellationTokenSource? _saveCts;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -47,15 +50,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             RefreshGraphPoints();
         }
 
-        private bool _savePending;
         private async void OnCurveNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             UpdateGraphPointsFromNodes();
-            if (_savePending) return;
-            _savePending = true;
-            await System.Threading.Tasks.Task.Delay(300);
-            _savePending = false;
-            _configManager.SaveEntry(_entry);
+            
+            _saveCts?.Cancel();
+            _saveCts?.Dispose();
+            _saveCts = new CancellationTokenSource();
+            var token = _saveCts.Token;
+
+            try
+            {
+                await Task.Delay(_configManager.Settings.UiDebounceDelayMs, token);
+                
+                await _configManager.SaveEntryAsync(_entry);
+            }
+            catch (TaskCanceledException) 
+            { 
+            }
         }
 
         public int FanId { get => _fanId; set { _fanId = value; OnPropertyChanged(); } }
@@ -96,17 +108,23 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public void MovePoint(CurveNodeDisplay display, float temperature, int targetPercent)
         {
             if (display?.Node == null) return;
-            temperature = Math.Clamp(temperature, 0, 100); targetPercent = Math.Clamp(targetPercent, 0, 100);
+            temperature = Math.Clamp(temperature, 0, 100);
+            int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temperature);
+            targetPercent = Math.Clamp(targetPercent, safeMinPercent, 100);
+            
             display.Node.Temperature = temperature; display.Node.TargetPercent = targetPercent;
             UpdateGraphPointsFromNodes();
-            if (_graphWidth > 0 && _graphHeight > 0) { display.DisplayX = temperature / 100.0 * _graphWidth; display.DisplayY = (1.0 - targetPercent / 100.0) * _graphHeight; }
-            _configManager.SaveEntry(_entry);
+            if (_graphWidth > 0 && _graphHeight > 0) { display.DisplayX = temperature / 100.0 * _graphWidth; display.DisplayY = (1.0 - targetPercent / 100.0) * _graphHeight; }   
         }
 
         private void AddPoint()
         {
             var last = CurveNodes.LastOrDefault();
-            CurveNodes.Add(new CurveNode { Temperature = Math.Min((last?.Temperature ?? 45) + 5, 100), TargetPercent = Math.Min(last?.TargetPercent ?? 50, 100) });
+            float temp = Math.Min((last?.Temperature ?? 45) + 5, 100);
+            int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temp);
+            int targetPercent = Math.Clamp(last?.TargetPercent ?? 50, safeMinPercent, 100);
+            
+            CurveNodes.Add(new CurveNode { Temperature = temp, TargetPercent = targetPercent });
             _configManager.SaveEntry(_entry);
         }
 

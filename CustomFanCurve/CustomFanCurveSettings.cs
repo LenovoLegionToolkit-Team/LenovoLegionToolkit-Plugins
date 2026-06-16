@@ -35,6 +35,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public bool EnableMaxFanWriteEachCycle { get; set; } = true;
         public int CriticalTemp { get; set; } = 120;
 
+        public double EmaAlpha { get; set; } = 0.2;
+        public int StepDownRateRpmPerSec { get; set; } = 400;
+        public int StepDownSpamProtectionDelta { get; set; } = 400;
+        public int UiDebounceDelayMs { get; set; } = 300;
+        public int SafeMinTemp { get; set; } = 75;
+        public int SafeMaxTemp { get; set; } = 90;
+        public int SafeMaxPercentAtMaxTemp { get; set; } = 50;
+
         public List<CustomFanCurveEntry> Entries { get; set; } = new();
     }
 }

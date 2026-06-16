@@ -23,6 +23,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     _temperature = value;
                     OnPropertyChanged();
+                    
+                    TargetPercent = _targetPercent;
                 }
             }
         }
@@ -36,9 +38,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             set
             {
-                if (_targetPercent != value)
+                int safeMin = CustomFanCurveCalculator.GetSafeMinPercent(_temperature);
+                int clampedValue = Math.Clamp(value, safeMin, 100);
+                
+                if (_targetPercent != clampedValue)
                 {
-                    _targetPercent = value;
+                    _targetPercent = clampedValue;
+                    OnPropertyChanged();
+                }
+                else if (value != clampedValue)
+                {
                     OnPropertyChanged();
                 }
             }
