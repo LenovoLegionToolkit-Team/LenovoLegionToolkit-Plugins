@@ -14,8 +14,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public double TemperatureDeltaThreshold { get; set; } = 0.5;
         public bool IgnoreZeroTemperature { get; set; }
 
-        public int MaxRpm { get; set; } = 6400;
-        public bool IsMaxRpmInitialized { get; set; }
+        public Dictionary<int, int> FanMaxRpms { get; set; } = new();
+        public bool FallbackProbeDone { get; set; }
         public bool AlwaysWriteRpm { get; set; } = true;
         public bool ForceWriteWhenRpmZero { get; set; } = true;
         public int MinimumRpmChangeToApply { get; set; } = 50;

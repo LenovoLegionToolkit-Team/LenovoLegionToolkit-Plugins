@@ -93,7 +93,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public async Task InitializeAsync()
         {
-            await _hardware.InitializeAsync().ConfigureAwait(false);
+            var saved = _configManager.Settings.FanMaxRpms;
+            await _hardware.InitializeAsync(saved).ConfigureAwait(false);
+            if (saved.Count > 0 && !_configManager.Settings.FallbackProbeDone)
+            {
+                _configManager.UpdateSetting(nameof(CustomFanCurveSettings.FallbackProbeDone), true);
+            }
+
             _configManager.EnsureEntriesForFans(_hardware.AvailableFanIds);
             await ReevaluateStateAsync();
             _initTcs.TrySetResult();

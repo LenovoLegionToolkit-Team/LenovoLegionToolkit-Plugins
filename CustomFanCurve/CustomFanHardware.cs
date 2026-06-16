@@ -11,7 +11,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         bool IsSupported { get; }
         IReadOnlyList<int> AvailableFanIds { get; }
-        Task InitializeAsync();
+        Dictionary<int, int> MaxRpms { get; }
+        Task InitializeAsync(Dictionary<int, int> savedMaxRpms);
         int GetMaxRpm(int fanId);
         int GetMinRpm(int fanId);
         Task SetFanRpmAsync(int fanId, int rpm);
@@ -27,8 +28,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public bool IsSupported { get; private set; }
         public IReadOnlyList<int> AvailableFanIds => _fanIds;
+        public Dictionary<int, int> MaxRpms => new(_maxRpms);
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(Dictionary<int, int> savedMaxRpms)
         {
             var fanTestDataWorks = false;
 
@@ -53,9 +55,28 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 catch { }
             }
 
-            if (!fanTestDataWorks)
+            if (fanTestDataWorks)
+            {
+                foreach (var kv in _maxRpms)
+                {
+                    savedMaxRpms[kv.Key] = kv.Value;
+                }
+            }
+            else if (savedMaxRpms.Count > 0)
+            {
+                foreach (var kv in savedMaxRpms)
+                {
+                    _fanIds.Add(kv.Key);
+                    _maxRpms[kv.Key] = kv.Value;
+                }
+            }
+            else
             {
                 await ProbeFansAsync();
+                foreach (var kv in _maxRpms)
+                {
+                    savedMaxRpms[kv.Key] = kv.Value;
+                }
             }
 
             foreach (var fanId in _fanIds)
