@@ -21,12 +21,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ICustomFanMonitoringService _monitoring;
 
         private readonly PowerModeFeature? _powerModeFeature;
+        private readonly ITSModeFeature? _itsModeFeature;
         private readonly PowerModeListener? _powerModeListener;
         private readonly ThermalModeListener? _thermalModeListener;
+        private readonly ITSModeListener? _itsModeListener;
 
         private bool _disposed;
         private bool _isEnabled;
         private bool _isFullSpeed;
+        private bool _isMaxPerformanceMode;
         private int _uiOpenCount;
         private long _lastUiUpdateTick;
 
@@ -37,7 +40,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly Dictionary<FanType, string> _lastFingerprint = new();
 
         private readonly SemaphoreSlim _modeLock = new(1, 1);
-        private MachineInformation? _machineInfo;
 
         public bool IsActive
         {
@@ -58,11 +60,22 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             try { _powerModeFeature = IoCContainer.Resolve<PowerModeFeature>(); }
             catch { }
 
-            try { _powerModeListener = IoCContainer.Resolve<PowerModeListener>(); }
-            catch { }
+            if (_powerModeFeature != null)
+            {
+                try { _powerModeListener = IoCContainer.Resolve<PowerModeListener>(); }
+                catch { }
 
-            try { _thermalModeListener = IoCContainer.Resolve<ThermalModeListener>(); }
-            catch { }
+                try { _thermalModeListener = IoCContainer.Resolve<ThermalModeListener>(); }
+                catch { }
+            }
+            else
+            {
+                try { _itsModeFeature = IoCContainer.Resolve<ITSModeFeature>(); }
+                catch { }
+
+                try { _itsModeListener = IoCContainer.Resolve<ITSModeListener>(); }
+                catch { }
+            }
 
             if (_powerModeListener != null)
             {
@@ -72,6 +85,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (_thermalModeListener != null)
             {
                 _thermalModeListener.Changed += OnThermalModeChanged;
+            }
+
+            if (_itsModeListener != null)
+            {
+                _itsModeListener.Changed += OnITSModeChanged;
             }
 
             _configManager.SettingsChanged += () =>
@@ -88,7 +106,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public async Task InitializeAsync()
         {
-            _machineInfo = await Compatibility.GetMachineInformationAsync().ConfigureAwait(false);
             await _hardware.InitializeAsync().ConfigureAwait(false);
             InitMaxRpmFromHardware();
             await ReevaluateStateAsync();
@@ -151,6 +168,19 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             else if (!_isFullSpeed && _uiOpenCount <= 0)
             {
                 StopSensorsIfNeeded();
+                await RestoreAutoFanAsync();
+            }
+        }
+
+        private async Task RestoreAutoFanAsync()
+        {
+            foreach (var type in new[] { FanType.Cpu, FanType.Gpu, FanType.System })
+            {
+                try
+                {
+                    await _hardware.SetFanRpmAsync(type, 0).ConfigureAwait(false);
+                }
+                catch { }
             }
         }
 
@@ -353,27 +383,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async void OnPowerModeChanged(object? s, PowerModeListener.ChangedEventArgs e)
         {
-            await HandleModeChangeAsync(e.State);
+            await HandleModeChangeAsync();
         }
 
         private async void OnThermalModeChanged(object? s, ThermalModeListener.ChangedEventArgs e)
         {
-            var ps = e.State switch
-            {
-                ThermalModeState.Quiet => PowerModeState.Quiet,
-                ThermalModeState.Balance => PowerModeState.Balance,
-                ThermalModeState.Performance => PowerModeState.Performance,
-                ThermalModeState.Extreme => PowerModeState.Extreme,
-                ThermalModeState.GodMode => PowerModeState.GodMode,
-                _ => (PowerModeState?)null
-            };
-            if (ps.HasValue)
-            {
-                await HandleModeChangeAsync(ps.Value);
-            }
+            await HandleModeChangeAsync();
         }
 
-        private async Task HandleModeChangeAsync(PowerModeState state)
+        private async void OnITSModeChanged(object? s, ITSModeListener.ChangedEventArgs e)
+        {
+            await HandleModeChangeAsync();
+        }
+
+        private async Task HandleModeChangeAsync()
         {
             await _modeLock.WaitAsync().ConfigureAwait(false);
             try
@@ -383,20 +406,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     return;
                 }
 
-                var actual = state;
-                if (_powerModeFeature != null)
-                {
-                    try
-                    {
-                        actual = await _powerModeFeature.GetStateAsync()
-                            .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
-                    }
-                    catch { }
-                }
+                _isMaxPerformanceMode = await CheckIsMaxPerformanceModeAsync().ConfigureAwait(false);
 
                 var user = _configManager.Settings.IsCustomFanEnabled;
-                var isThinkBook = _machineInfo?.LegionSeries == LegionSeries.ThinkBook;
-                var shouldEnable = user && (actual == PowerModeState.GodMode || isThinkBook || _configManager.Settings.ApplyToAllPowerModes);
+                var shouldEnable = user && (_hardware.IsSupported &&
+                    (_isMaxPerformanceMode || _configManager.Settings.ApplyToAllPowerModes));
                 await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
 
                 var settings = _configManager.Settings;
@@ -429,6 +443,32 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
+        private async Task<bool> CheckIsMaxPerformanceModeAsync()
+        {
+            if (_powerModeFeature != null)
+            {
+                try
+                {
+                    var state = await _powerModeFeature.GetStateAsync()
+                        .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    return state == PowerModeState.GodMode;
+                }
+                catch { }
+            }
+            else if (_itsModeFeature != null)
+            {
+                try
+                {
+                    var state = await _itsModeFeature.GetStateAsync()
+                        .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    return state == ITSMode.MmcGeek;
+                }
+                catch { }
+            }
+
+            return false;
+        }
+
         private async Task ForceRefreshAsync()
         {
             var snapshot = _sensorProvider.LatestSnapshot;
@@ -437,14 +477,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async Task ReevaluateStateAsync()
         {
-            var state = PowerModeState.Quiet;
-            if (_powerModeFeature != null)
-            {
-                try { state = await _powerModeFeature.GetStateAsync().ConfigureAwait(false); }
-                catch { }
-            }
-
-            await HandleModeChangeAsync(state);
+            _isMaxPerformanceMode = await CheckIsMaxPerformanceModeAsync().ConfigureAwait(false);
+            await HandleModeChangeAsync();
         }
 
         public void Dispose()
@@ -464,6 +498,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (_thermalModeListener != null)
             {
                 _thermalModeListener.Changed -= OnThermalModeChanged;
+            }
+
+            if (_itsModeListener != null)
+            {
+                _itsModeListener.Changed -= OnITSModeChanged;
             }
 
             MessagingCenter.Unsubscribe(this);

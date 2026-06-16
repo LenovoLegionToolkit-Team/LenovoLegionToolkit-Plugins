@@ -45,8 +45,23 @@
     <EmbeddedResource Update="Resources\Resource.*.resx" />
   </ItemGroup>
 
+  <!-- Embed satellite resource DLLs so no separate language files are needed -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Satellites\$(AssemblyName).resources.dll"
+                      Condition="Exists('Resources\Satellites\$(AssemblyName).resources.dll')">
+      <LogicalName>$(RootNamespace).satellites.zh-hans.$(AssemblyName).resources.dll</LogicalName>
+      <Visible>false</Visible>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="StageSatelliteDlls" AfterTargets="AfterBuild">
+    <Copy SourceFiles="$(OutputPath)zh-hans\$(AssemblyName).resources.dll"
+          DestinationFolder="$(MSBuildProjectDirectory)\Resources\Satellites"
+          SkipUnchangedFiles="true" />
+  </Target>
+
   <PropertyGroup>
-    <NoWarn>CA1416</NoWarn>
+    <NoWarn>CA1416;CA2255</NoWarn>
   </PropertyGroup>
 
   <Target Name="PatchAssemblyVersion" AfterTargets="AfterBuild">

@@ -8,6 +8,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 {
     public interface ICustomFanHardware
     {
+        bool IsSupported { get; }
         Task InitializeAsync();
         int GetMaxRpm(FanType fanType);
         int GetMinRpm(FanType fanType);
@@ -19,6 +20,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         private readonly Dictionary<FanType, int> _maxRpms = new();
         private readonly Dictionary<FanType, int> _minRpms = new();
+
+        public bool IsSupported { get; private set; }
 
         public async Task InitializeAsync()
         {
@@ -43,6 +46,26 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     System.Diagnostics.Debug.WriteLine($"FanHardware init fail {fanType}: {ex.Message}");
                 }
+            }
+
+            IsSupported = await CheckSupportAsync().ConfigureAwait(false);
+        }
+
+        private async Task<bool> CheckSupportAsync()
+        {
+            if (_maxRpms.Count == 0 && _minRpms.Count == 0)
+            {
+                return false;
+            }
+
+            try
+            {
+                var rpm = await WMI.LenovoOtherMethod.GetFeatureValueAsync(CapabilityID.CpuCurrentFanSpeed).ConfigureAwait(false);
+                return rpm >= 0;
+            }
+            catch
+            {
+                return false;
             }
         }
 

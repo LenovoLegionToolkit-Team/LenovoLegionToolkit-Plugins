@@ -82,6 +82,9 @@ dlldata.c
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
+# Embedded satellite resource DLLs (build artifacts)
+**/Resources/Satellites/
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json
