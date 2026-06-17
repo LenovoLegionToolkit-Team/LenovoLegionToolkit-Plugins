@@ -93,7 +93,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (!_disposed) { _ = ReevaluateStateAsync(); }
             };
 
-            MessagingCenter.Subscribe<FanStateMessage>(this, m => _ = SetEnabledAsync(m.State != FanState.Auto));
+            MessagingCenter.Subscribe<FanStateMessage>(this, m => 
+            {
+                if (m.State == FanState.Auto)
+                    _ = SetEnabledAsync(false);
+                else if (_configManager.Settings.IsCustomFanEnabled)
+                    _ = SetEnabledAsync(true);
+            });
             _sensorProvider.SensorUpdated += OnSensorUpdated;
         }
 
@@ -155,6 +161,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private async Task SetEnabledAsync(bool enable)
         {
             if (_disposed) return;
+            if (_isEnabled == enable) return;
 
             _isEnabled = enable;
             if (enable)
