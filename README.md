@@ -5,7 +5,13 @@ Modular, DLL-based plugins that extend the core functionality of Lenovo Legion T
 ## Available Plugins
 
 ### CustomFanCurve
-Provides fine-grained control over the cooling system on supported Legion devices via WMI. Features include CPU/GPU/System fan monitoring, custom curve adjustments, and native `.resx` localization.
+Provides advanced, algorithm-driven control over the cooling system on supported Legion devices via WMI. 
+
+**Features:**
+- CPU/GPU/System fan monitoring with custom UI curve adjustments.
+- **Predictive Engine:** Calculus-based derivative lookahead ($dT/dt$) to proactively spool up fans before thermal saturation.
+- **Acoustic Tuning:** Harmonic interference prevention that mathematically shifts fan RPMs to cancel out annoying beat frequencies.
+- **Thermal Smoothing & Hysteresis:** Exponential Moving Average (EMA) and deadzone buffers to prevent rapid fan cycling and jitter.
 
 ## Developing a Plugin
 
@@ -58,10 +64,10 @@ public sealed class MyPluginProvider : IExtensionProvider
 
 ```bash
 # System environment variable (recommended)
-setx LLT_SOURCE "D:\Repo\LenovoLegionToolkit"
+setx LLT_SOURCE "C:\Path\To\LenovoLegionToolkit"
 
 # Or per-session
-set LLT_SOURCE=D:\Repo\LenovoLegionToolkit
+set LLT_SOURCE=C:\Path\To\LenovoLegionToolkit
 ```
 
 ### Build All Plugins
@@ -80,7 +86,7 @@ dotnet build AssemblyVersionPatcher/AssemblyVersionPatcher.csproj -c Release
 dotnet publish CustomFanCurve/CustomFanCurve.csproj -c Release -o out/Plugins/CustomFanCurve
 ```
 
-Once compiled, deploy your `PluginName.dll` and its culture resource folders to the LLT plugins directory:
+Once compiled, deploy your single `PluginName.dll` file to the LLT plugins directory (all language resources are automatically embedded into the DLL):
 `%LOCALAPPDATA%\LenovoLegionToolkit\Plugins\PluginName\`
 
 ## Localization
@@ -90,4 +96,19 @@ Translations are handled via standard .NET Satellite Assemblies.
 1. Navigate to the `Resources` directory within the plugin project.
 2. Duplicate `Resource.resx` and rename it for the target culture (e.g., `Resource.zh-hans.resx`).
 3. Add the IETF language tag to the `<SatelliteResourceLanguages>` property in the plugin's `.csproj`.
-4. Compile the plugin to generate the culture-specific satellite assemblies.
+4. Compile the plugin. The custom MSBuild target will automatically generate and embed the culture-specific satellite assemblies directly into your main `.dll`.
+
+## Automated Releases
+
+Releases are fully automated via GitHub Actions to ensure clean and consistent plugin packaging.
+
+1. Navigate to the **Actions** tab on GitHub.
+2. Select **Publish Release** on the left menu.
+3. Click **Run workflow**, choose your target channel (`Stable` or `Beta`), and enter the tag you'd like to use (e.g. `latest` or `v1.2`).
+
+The GitHub Action will automatically:
+- Spin up a runner and pull the core application dependencies.
+- Compile all plugins in the repository and embed their localizations.
+- Zip the core `.dll` of each plugin independently.
+- Detect which plugin folders were modified since the last release tag.
+- Draft a new GitHub Release with the updated plugins automatically listed in the changelog, pending manual publication.
