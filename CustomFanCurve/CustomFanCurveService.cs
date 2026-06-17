@@ -26,7 +26,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly PowerModeListener? _powerModeListener;
         private readonly ThermalModeListener? _thermalModeListener;
         private readonly ITSModeListener? _itsModeListener;
-        private readonly SessionLockUnlockListener? _sessionLockListener;
 
         private bool _disposed;
         private bool _isEnabled;
@@ -82,17 +81,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 catch { }
             }
 
-            try { _sessionLockListener = IoCContainer.Resolve<SessionLockUnlockListener>(); }
-            catch { }
-
             if (_powerModeListener != null)
                 _powerModeListener.Changed += OnPowerModeChanged;
             if (_thermalModeListener != null)
                 _thermalModeListener.Changed += OnThermalModeChanged;
             if (_itsModeListener != null)
                 _itsModeListener.Changed += OnITSModeChanged;
-            if (_sessionLockListener != null)
-                _sessionLockListener.Changed += OnSessionLockChanged;
 
             _configManager.SettingsChanged += () =>
             {
@@ -136,9 +130,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public async Task SetFullSpeed(bool isFullSpeed)
         {
-            if (isFullSpeed && !_configManager.Settings.IsCustomFanEnabled)
-                return;
-
             _isFullSpeed = isFullSpeed;
             _configManager.UpdateSetting(nameof(CustomFanCurveSettings.IsFullSpeed), isFullSpeed);
             if (_isFullSpeed)
@@ -165,9 +156,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             if (_disposed) return;
 
-            if (enable && !_configManager.Settings.IsCustomFanEnabled)
-                return;
-
             _isEnabled = enable;
             if (enable)
             {
@@ -177,9 +165,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             else
             {
-                _isFullSpeed = false;
-                _configManager.UpdateSetting(nameof(CustomFanCurveSettings.IsFullSpeed), false);
-                await RestoreAutoFanAsync();
+                if (!_isFullSpeed)
+                    await RestoreAutoFanAsync();
                 if (_uiOpenCount <= 0)
                     StopSensorsIfNeeded();
             }
@@ -518,14 +505,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             await HandleModeChangeAsync();
         }
 
-        private async void OnSessionLockChanged(object? s, SessionLockUnlockListener.ChangedEventArgs e)
-        {
-            if (e.Locked && (_isEnabled || _isFullSpeed))
-            {
-                await RestoreAutoFanAsync().ConfigureAwait(false);
-            }
-        }
-
         private async Task HandleModeChangeAsync()
         {
             await _modeLock.WaitAsync().ConfigureAwait(false);
@@ -607,14 +586,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public void Dispose()
         {
             if (_disposed) return;
-            _ = ShutdownAsync();
-        }
 
-        public async Task ShutdownAsync()
-        {
-            if (_disposed) return;
             _disposed = true;
-
             _sensorProvider.SensorUpdated -= OnSensorUpdated;
             if (_powerModeListener != null)
                 _powerModeListener.Changed -= OnPowerModeChanged;
@@ -622,17 +595,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 _thermalModeListener.Changed -= OnThermalModeChanged;
             if (_itsModeListener != null)
                 _itsModeListener.Changed -= OnITSModeChanged;
-            if (_sessionLockListener != null)
-                _sessionLockListener.Changed -= OnSessionLockChanged;
 
             MessagingCenter.Unsubscribe(this);
             StopSensorsIfNeeded();
-
-            if (_isEnabled || _isFullSpeed)
-            {
-                await RestoreAutoFanAsync().ConfigureAwait(false);
-            }
-
             _modeLock.Dispose();
         }
     }
