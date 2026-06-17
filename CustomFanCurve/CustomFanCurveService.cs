@@ -23,6 +23,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private readonly PowerModeFeature? _powerModeFeature;
         private readonly ITSModeFeature? _itsModeFeature;
+        private readonly ITSModeFeature? _itsModeFeatureFallback;
         private readonly PowerModeListener? _powerModeListener;
         private readonly ThermalModeListener? _thermalModeListener;
         private readonly ITSModeListener? _itsModeListener;
@@ -63,22 +64,69 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _sensorProvider = sensorProvider;
             _monitoring = monitoring;
 
-            try { _powerModeFeature = IoCContainer.Resolve<PowerModeFeature>(); }
-            catch { }
+            try
+            {
+                _powerModeFeature = IoCContainer.Resolve<PowerModeFeature>();
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"PowerModeFeature resolve failed: {ex.GetType().Name}: {ex.Message}");
+            }
 
             if (_powerModeFeature != null)
             {
-                try { _powerModeListener = IoCContainer.Resolve<PowerModeListener>(); }
-                catch { }
-                try { _thermalModeListener = IoCContainer.Resolve<ThermalModeListener>(); }
-                catch { }
+                Logger.Debug("Power mode detection: using PowerModeFeature + PowerModeListener/ThermalModeListener");
+                try
+                {
+                    _powerModeListener = IoCContainer.Resolve<PowerModeListener>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"PowerModeListener resolve failed: {ex.GetType().Name}: {ex.Message}");
+                }
+                try
+                {
+                    _thermalModeListener = IoCContainer.Resolve<ThermalModeListener>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"ThermalModeListener resolve failed: {ex.GetType().Name}: {ex.Message}");
+                }
+
+                try
+                {
+                    _itsModeFeatureFallback = IoCContainer.Resolve<ITSModeFeature>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"ITSModeFeature fallback resolve failed: {ex.GetType().Name}: {ex.Message}");
+                }
+                if (_itsModeFeatureFallback != null)
+                    Logger.Debug("Power mode detection: ITSModeFeature also available as fallback");
             }
             else
             {
-                try { _itsModeFeature = IoCContainer.Resolve<ITSModeFeature>(); }
-                catch { }
-                try { _itsModeListener = IoCContainer.Resolve<ITSModeListener>(); }
-                catch { }
+                try
+                {
+                    _itsModeFeature = IoCContainer.Resolve<ITSModeFeature>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"ITSModeFeature resolve failed: {ex.GetType().Name}: {ex.Message}");
+                }
+                try
+                {
+                    _itsModeListener = IoCContainer.Resolve<ITSModeListener>();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"ITSModeListener resolve failed: {ex.GetType().Name}: {ex.Message}");
+                }
+
+                if (_itsModeFeature != null)
+                    Logger.Debug("Power mode detection: using ITSModeFeature + ITSModeListener");
+                else
+                    Logger.Debug("Power mode detection: NEITHER PowerModeFeature nor ITSModeFeature available — plugin will only work if ApplyToAllPowerModes is enabled");
             }
 
             if (_powerModeListener != null)
@@ -105,15 +153,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public async Task InitializeAsync()
         {
+            Logger.Debug("Service initialization starting...");
             var saved = _configManager.Settings.FanMaxRpms;
             await _hardware.InitializeAsync(saved).ConfigureAwait(false);
+            Logger.Debug($"Hardware initialization complete: IsSupported={_hardware.IsSupported}, AvailableFanIds=[{string.Join(", ", _hardware.AvailableFanIds)}]");
             if (saved.Count > 0 && !_configManager.Settings.FallbackProbeDone)
             {
                 _configManager.UpdateSetting(nameof(CustomFanCurveSettings.FallbackProbeDone), true);
+                Logger.Debug("Fallback probe completed and saved");
             }
 
             _configManager.EnsureEntriesForFans(_hardware.AvailableFanIds);
+            Logger.Debug($"Fan entries ensured for {_hardware.AvailableFanIds.Count} fan(s)");
             await ReevaluateStateAsync();
+            Logger.Debug("Service initialization complete");
             _initTcs.TrySetResult();
         }
 
@@ -164,6 +217,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (_isEnabled == enable) return;
 
             _isEnabled = enable;
+            Logger.Debug($"Fan control enabled={enable}");
             if (enable)
             {
                 StartSensorsIfNeeded();
@@ -300,8 +354,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var max = _hardware.GetMaxRpm(fanId);
             await _hardware.SetFanRpmAsync(fanId, max).ConfigureAwait(false);
             var rpm = 0;
-            try { rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false); }
-            catch { }
+            try
+            {
+                rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+            }
+            catch { /* Ignore */ }
 
             _lastAppliedRpm[fanId] = max;
             TryUpdateMonitoring(fanId, temp, rpm, max, true);
@@ -430,8 +487,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
 
             var rpm = 0;
-            try { rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false); }
-            catch { }
+            try
+            {
+                rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+            }
+            catch { /* Ignore */ }
 
             var hadLast = _lastAppliedRpm.TryGetValue(fanId, out var lastApplied);
             var delta = hadLast ? Math.Abs(lastApplied - targetRpm) : int.MaxValue;
@@ -459,8 +519,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             await _hardware.SetFanRpmAsync(fanId, targetRpm).ConfigureAwait(false);
             
             int newRpm = rpm;
-            try { newRpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false); }
-            catch { }
+            try
+            {
+                newRpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+            }
+            catch { /* Ignore */ }
 
             _lastAppliedRpm[fanId] = targetRpm;
             return newRpm;
@@ -487,8 +550,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var entry = _configManager.GetEntry(fanId) ?? new CustomFanCurveEntry { FanId = fanId };
                 var temp = GetTemperatureForFan(entry, _hardware.AvailableFanIds, cpuTemp, gpuTemp);
                 var rpm = 0;
-                try { rpm = _hardware.GetFanRpmAsync(fanId).GetAwaiter().GetResult(); }
-                catch { }
+                try
+                {
+                    rpm = _hardware.GetFanRpmAsync(fanId).GetAwaiter().GetResult();
+                }
+                catch { /* Ignore */ }
 
                 _monitoring.Update(fanId, temp, rpm, _lastAppliedRpm.TryGetValue(fanId, out var tr) ? tr : 0);
             }
@@ -521,6 +587,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var user = _configManager.Settings.IsCustomFanEnabled;
                 var shouldEnable = user && (_hardware.IsSupported &&
                     (_isMaxPerformanceMode || _configManager.Settings.ApplyToAllPowerModes));
+                Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} -> shouldEnable={shouldEnable}");
                 await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
 
                 var settings = _configManager.Settings;
@@ -557,9 +624,29 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await _powerModeFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
-                    return state == PowerModeState.GodMode;
+                    var isMax = state == PowerModeState.GodMode;
+                    Logger.Debug($"CheckMaxPerf: PowerModeFeature state={state} isMaxPerf={isMax}");
+                    return isMax;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"CheckMaxPerf: PowerModeFeature.GetStateAsync failed: {ex.GetType().Name}: {ex.Message}");
+                    if (_itsModeFeatureFallback != null)
+                    {
+                        try
+                        {
+                            var state = await _itsModeFeatureFallback.GetStateAsync()
+                                .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                            var isMax = state == ITSMode.MmcGeek;
+                            Logger.Debug($"CheckMaxPerf: PowerModeFeature failed, ITSModeFeature fallback state={state} isMaxPerf={isMax}");
+                            return isMax;
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            Logger.Debug($"CheckMaxPerf: ITSModeFeature fallback also failed: {fallbackEx.GetType().Name}: {fallbackEx.Message}");
+                        }
+                    }
+                }
             }
             else if (_itsModeFeature != null)
             {
@@ -567,11 +654,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await _itsModeFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
-                    return state == ITSMode.MmcGeek;
+                    var isMax = state == ITSMode.MmcGeek;
+                    Logger.Debug($"CheckMaxPerf: ITSModeFeature state={state} isMaxPerf={isMax}");
+                    return isMax;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"CheckMaxPerf: ITSModeFeature.GetStateAsync failed: {ex.GetType().Name}: {ex.Message}");
+                }
             }
 
+            Logger.Debug("CheckMaxPerf: no power mode feature available, returning false");
             return false;
         }
 

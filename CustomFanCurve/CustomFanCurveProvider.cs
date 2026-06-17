@@ -113,7 +113,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             });
 
             Runtime.Attach(this);
-            _ = ControlService.InitializeAsync();
+            _ = InitializeWithErrorHandlingAsync();
         }
 
         public Task ExecuteAsync(string action, params object[] args) => Task.CompletedTask;
@@ -136,6 +136,19 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             Dispose();
             await ValueTask.CompletedTask;
+        }
+
+        private async Task InitializeWithErrorHandlingAsync()
+        {
+            try
+            {
+                await ControlService.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Instance.Trace($"[CustomFanCurve] Initialization failed: {ex.GetType().Name}: {ex.Message}");
+                Log.Instance.Trace($"[CustomFanCurve] Stack trace: {ex.StackTrace}");
+            }
         }
     }
 }

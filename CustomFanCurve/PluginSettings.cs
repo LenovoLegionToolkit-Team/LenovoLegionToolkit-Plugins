@@ -37,7 +37,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     return _cached;
                 }
             }
-            catch (Exception ex) { Log.Instance.Trace($"CustomFanCurve load error: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Log.Instance.Trace($"CustomFanCurve load error: {ex.Message}");
+            }
 
             _cached = new CustomFanCurveSettings();
             Save(_cached);
@@ -54,7 +57,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(_filePath, JsonConvert.SerializeObject(settings, Formatting.Indented));
             }
-            catch (Exception ex) { Log.Instance.Trace($"CustomFanCurve save error: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Log.Instance.Trace($"CustomFanCurve save error: {ex.Message}");
+            }
             finally
             {
                 _fileLock.Release();
@@ -73,7 +79,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 string json = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 await File.WriteAllTextAsync(_filePath, json);
             }
-            catch (Exception ex) { Log.Instance.Trace($"CustomFanCurve async save error: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Log.Instance.Trace($"CustomFanCurve async save error: {ex.Message}");
+            }
             finally
             {
                 _fileLock.Release();
