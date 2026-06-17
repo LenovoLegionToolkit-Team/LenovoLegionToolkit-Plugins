@@ -280,7 +280,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 else
                 {
-                    fanSpeeds.TryGetValue(entry.FanId, out var currentRpm);
+                    if (!fanSpeeds.TryGetValue(entry.FanId, out var currentRpm))
+                    {
+                        try { currentRpm = await _hardware.GetFanRpmAsync(entry.FanId).ConfigureAwait(false); }
+                        catch { /* Ignore */ }
+                    }
                     var res = await ProcessCurveMathAsync(entry, temp, cpuTemp, gpuTemp, currentRpm);
                     results[entry.FanId] = (res.ShouldWrite, res.TargetRpm, currentRpm, temp);
                 }
@@ -487,16 +491,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var hadLast = _lastAppliedRpm.TryGetValue(fanId, out var lastApplied);
             var delta = hadLast ? Math.Abs(lastApplied - targetRpm) : int.MaxValue;
 
-            // Skip write if delta is below 200 RPM or target equals last written value
-            var isSameOrClose = hadLast && (delta < 200 || targetRpm == lastApplied);
+            var requiredDelta = isSteppingDown ? settings.StepDownSpamProtectionDelta : settings.MinimumRpmChangeToApply;
+            var isSameOrClose = hadLast && (delta < requiredDelta || targetRpm == lastApplied);
             var isSteppingToZero = isSteppingDown && targetRpm <= 0;
 
             var shouldWrite = !isSameOrClose
                 || isSteppingToZero
                 || (settings.ForceWriteWhenRpmZero && currentRpm == 0)
-                || settings.AlwaysWriteRpm;
+                || (!isSteppingDown && settings.AlwaysWriteRpm);
 
-            Logger.Debug($"Fan{fanId}: shouldWrite={shouldWrite} targetRpm={targetRpm} currentRpm={currentRpm} lastApplied={lastApplied} delta={delta} isSteppingDown={isSteppingDown}");
+            Logger.Debug($"Fan{fanId}: shouldWrite={shouldWrite} targetRpm={targetRpm} currentRpm={currentRpm} lastApplied={lastApplied} delta={delta} requiredDelta={requiredDelta} isSteppingDown={isSteppingDown}");
 
             return (shouldWrite, targetRpm, currentRpm);
         }
@@ -618,8 +622,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 catch (Exception ex)
                 {
-                    _powerModeFeatureBroken = true;
-                    Logger.Debug($"CheckMaxPerf: PowerModeFeature WMI not available ({ex.GetType().Name}), switching to ITS fallback permanently");
+                    if (ex is not OperationCanceledException && ex is not TimeoutException)
+                        _powerModeFeatureBroken = true;
+                    
+                    Logger.Debug($"CheckMaxPerf: PowerModeFeature WMI not available ({ex.GetType().Name}), using ITS fallback");
                 }
             }
 
