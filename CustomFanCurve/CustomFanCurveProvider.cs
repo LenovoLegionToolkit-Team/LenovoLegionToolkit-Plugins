@@ -117,7 +117,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         }
 
         public Task ExecuteAsync(string action, params object[] args) => Task.CompletedTask;
-        public object? GetData(string key) => null;
+        public object? GetData(string key) => key switch
+        {
+            nameof(ExtensionDataKey.Capability) => "FanControl",
+            nameof(ExtensionDataKey.Version) => "1.0.0",
+            _ => null
+        };
+
         public void SetData(string key, object? value) { }
 
         public void Dispose()
