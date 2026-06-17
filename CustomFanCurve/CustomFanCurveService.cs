@@ -32,6 +32,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private bool _isEnabled;
         private bool _isFullSpeed;
         private bool _isMaxPerformanceMode;
+        private bool _powerModeFeatureBroken;
         private int _uiOpenCount;
         private long _lastUiUpdateTick;
 
@@ -587,7 +588,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var user = _configManager.Settings.IsCustomFanEnabled;
                 var shouldEnable = user && (_hardware.IsSupported &&
                     (_isMaxPerformanceMode || _configManager.Settings.ApplyToAllPowerModes));
-                Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} -> shouldEnable={shouldEnable}");
+                if (shouldEnable != _isEnabled)
+                    Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} -> shouldEnable={shouldEnable}");
                 await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
 
                 var settings = _configManager.Settings;
@@ -618,7 +620,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async Task<bool> CheckIsMaxPerformanceModeAsync()
         {
-            if (_powerModeFeature != null)
+            if (_powerModeFeature != null && !_powerModeFeatureBroken)
             {
                 try
                 {
@@ -630,38 +632,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 catch (Exception ex)
                 {
-                    Logger.Debug($"CheckMaxPerf: PowerModeFeature.GetStateAsync failed: {ex.GetType().Name}: {ex.Message}");
-                    if (_itsModeFeatureFallback != null)
-                    {
-                        try
-                        {
-                            var state = await _itsModeFeatureFallback.GetStateAsync()
-                                .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
-                            var isMax = state == ITSMode.MmcGeek;
-                            Logger.Debug($"CheckMaxPerf: PowerModeFeature failed, ITSModeFeature fallback state={state} isMaxPerf={isMax}");
-                            return isMax;
-                        }
-                        catch (Exception fallbackEx)
-                        {
-                            Logger.Debug($"CheckMaxPerf: ITSModeFeature fallback also failed: {fallbackEx.GetType().Name}: {fallbackEx.Message}");
-                        }
-                    }
+                    _powerModeFeatureBroken = true;
+                    Logger.Debug($"CheckMaxPerf: PowerModeFeature WMI not available ({ex.GetType().Name}), switching to ITS fallback permanently");
                 }
             }
-            else if (_itsModeFeature != null)
+
+            var itsFeature = _itsModeFeature ?? _itsModeFeatureFallback;
+            if (itsFeature != null)
             {
                 try
                 {
-                    var state = await _itsModeFeature.GetStateAsync()
+                    var state = await itsFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
                     var isMax = state == ITSMode.MmcGeek;
-                    Logger.Debug($"CheckMaxPerf: ITSModeFeature state={state} isMaxPerf={isMax}");
+                    if (isMax != _isMaxPerformanceMode)
+                        Logger.Debug($"CheckMaxPerf: ITS state={state} isMaxPerf={isMax}");
                     return isMax;
                 }
-                catch (Exception ex)
-                {
-                    Logger.Debug($"CheckMaxPerf: ITSModeFeature.GetStateAsync failed: {ex.GetType().Name}: {ex.Message}");
-                }
+                catch { }
             }
 
             Logger.Debug("CheckMaxPerf: no power mode feature available, returning false");

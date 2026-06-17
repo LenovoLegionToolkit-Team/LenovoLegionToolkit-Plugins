@@ -8,11 +8,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         private readonly CustomFanCurveConfigManager _configManager;
         public bool IsLegionDevice { get; }
+        public bool ShowApplyToAllPowerModes { get; }
 
-        public GlobalSettingsViewModel(CustomFanCurveConfigManager configManager, bool isLegionDevice)
+        public GlobalSettingsViewModel(CustomFanCurveConfigManager configManager, bool isLegionDevice, bool isITSModeDevice)
         {
             _configManager = configManager;
             IsLegionDevice = isLegionDevice;
+            ShowApplyToAllPowerModes = isLegionDevice || isITSModeDevice;
             var s = configManager.Settings;
 
             _isCustomFanEnabled = s.IsCustomFanEnabled;

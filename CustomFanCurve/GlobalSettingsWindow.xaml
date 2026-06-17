@@ -127,7 +127,7 @@
                                         <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding IsCustomFanEnabled}"/>
                                     </Grid>
                                     <Separator Opacity="0.3" Margin="0,0,0,14"/>
-                                    <Grid Margin="0,0,0,14" Visibility="{Binding IsLegionDevice, Converter={StaticResource BoolToVis}}">
+                                    <Grid Margin="0,0,0,14" Visibility="{Binding ShowApplyToAllPowerModes, Converter={StaticResource BoolToVis}}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="{x:Static res:Resource.ApplyToAllModes}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
@@ -135,7 +135,7 @@
                                         </StackPanel>
                                         <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding ApplyToAllPowerModes}"/>
                                     </Grid>
-                                    <Separator Opacity="0.3" Margin="0,0,0,14" Visibility="{Binding IsLegionDevice, Converter={StaticResource BoolToVis}}"/>
+                                    <Separator Opacity="0.3" Margin="0,0,0,14" Visibility="{Binding ShowApplyToAllPowerModes, Converter={StaticResource BoolToVis}}"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">

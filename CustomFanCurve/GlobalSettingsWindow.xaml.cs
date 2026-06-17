@@ -13,12 +13,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly GlobalSettingsViewModel _viewModel;
         private readonly List<UIElement> _panels;
 
-        public GlobalSettingsWindow(CustomFanCurveConfigManager configManager, bool isLegionDevice)
+        public GlobalSettingsWindow(CustomFanCurveConfigManager configManager, bool isLegionDevice, bool isITSModeDevice)
         {
             var realCulture = LenovoLegionToolkit.Lib.Resources.Resource.Culture ?? System.Threading.Thread.CurrentThread.CurrentUICulture;
             this.Language = System.Windows.Markup.XmlLanguage.GetLanguage(realCulture.IetfLanguageTag);
             InitializeComponent();
-            _viewModel = new GlobalSettingsViewModel(configManager, isLegionDevice);
+            _viewModel = new GlobalSettingsViewModel(configManager, isLegionDevice, isITSModeDevice);
             DataContext = _viewModel;
 
             _panels = new List<UIElement> { _panelBasic, _panelSensor, _panelSpinUp, _panelModeSwitch, _panelAdvanced };

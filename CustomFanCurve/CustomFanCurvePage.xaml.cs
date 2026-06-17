@@ -140,7 +140,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 && series != LegionSeries.IdeaPad
                 && series != LegionSeries.YOGA
                 && series != LegionSeries.Motorola && series != LegionSeries.Unknown;
-            var window = new GlobalSettingsWindow(_configManager, isLegion)
+            var isITSMode = _machineInfo.Properties.SupportsITSMode;
+            var window = new GlobalSettingsWindow(_configManager, isLegion, isITSMode)
             {
                 Owner = Window.GetWindow(this),
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
