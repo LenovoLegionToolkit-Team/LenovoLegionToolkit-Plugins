@@ -266,11 +266,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             if (!_isFullSpeed)
             {
-                if (results.Values.Any(r => r.TargetRpm == 0))
-                {
-                    await RestoreAutoFanAsync().ConfigureAwait(false);
-                }
-
                 foreach (var kvp in results)
                 {
                     int fanId = kvp.Key;
@@ -417,7 +412,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int minRpm = _hardware.GetMinRpm(fanId);
                 if (targetRpm > 0 && targetRpm < minRpm)
                 {
-                    targetRpm = minRpm;
+                    targetRpm = idealRpm <= 0 ? 0 : minRpm;
                 }
                 _lastIdealRpm[fanId] = Math.Max(idealRpm, targetRpm);
 
