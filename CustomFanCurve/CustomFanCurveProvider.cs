@@ -93,7 +93,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             InstanceConfigManager = ConfigManager;
             Logger.Init(ConfigManager);
 
-            _sensorProvider = new SensorProvider(IoCContainer.Resolve<SensorsGroupController>());
+            ISensorsController? sensorsController = null;
+            try 
+            { 
+                sensorsController = IoCContainer.Resolve<ISensorsController>(); 
+            }
+            catch { /* Ignore */ }
+
+            _sensorProvider = new SensorProvider(IoCContainer.Resolve<SensorsGroupController>(), sensorsController);
             Monitoring = new CustomFanMonitoringService();
 
             ControlService = new CustomFanCurveService(ConfigManager, _hardware, _sensorProvider, Monitoring);

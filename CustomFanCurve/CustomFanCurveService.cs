@@ -253,8 +253,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async void OnSensorUpdated(HardwareSensorSnapshot snapshot)
         {
-            if (_uiOpenCount > 0)
-                UpdateMonitoringOnly(snapshot);
+            if (_uiOpenCount > 0 && !_isEnabled && !_isFullSpeed)
+                await UpdateMonitoringOnlyAsync(snapshot);
 
             if (_isEnabled || _isFullSpeed)
                 await Task.Run(() => ProcessAsync(snapshot));
@@ -267,6 +267,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var cpuTemp = Math.Max(0, snapshot.CpuTemp);
             var gpuTemp = Math.Max(0, snapshot.GpuTemp);
 
+            var fanSpeeds = await _sensorProvider.GetFanSpeedsAsync(_hardware.AvailableFanIds).ConfigureAwait(false);
+
             var results = new Dictionary<int, (bool ShouldWrite, int TargetRpm, int CurrentRpm, float Temp)>();
 
             foreach (var entry in _configManager.GetAllEntries())
@@ -278,8 +280,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 else
                 {
-                    var res = await ProcessCurveMathAsync(entry, temp, cpuTemp, gpuTemp);
-                    results[entry.FanId] = (res.ShouldWrite, res.TargetRpm, res.CurrentRpm, temp);
+                    fanSpeeds.TryGetValue(entry.FanId, out var currentRpm);
+                    var res = await ProcessCurveMathAsync(entry, temp, cpuTemp, gpuTemp, currentRpm);
+                    results[entry.FanId] = (res.ShouldWrite, res.TargetRpm, currentRpm, temp);
                 }
             }
 
@@ -354,18 +357,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var fanId = entry.FanId;
             var max = _hardware.GetMaxRpm(fanId);
             await _hardware.SetFanRpmAsync(fanId, max).ConfigureAwait(false);
-            var rpm = 0;
-            try
-            {
-                rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
-            }
-            catch { /* Ignore */ }
 
             _lastAppliedRpm[fanId] = max;
-            TryUpdateMonitoring(fanId, temp, rpm, max, true);
+            TryUpdateMonitoring(fanId, temp, max, max, true);
         }
 
-        private async Task<(bool ShouldWrite, int TargetRpm, int CurrentRpm)> ProcessCurveMathAsync(CustomFanCurveEntry entry, float temp, float rawCpu, float rawGpu)
+        private async Task<(bool ShouldWrite, int TargetRpm, int CurrentRpm)> ProcessCurveMathAsync(CustomFanCurveEntry entry, float temp, float rawCpu, float rawGpu, int currentRpm)
         {
             var fanId = entry.FanId;
             var settings = _configManager.Settings;
@@ -458,15 +455,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
                 // Asymmetric Step-Down: Smooths fan deceleration to prevent bearing wear and audible chopping.
-                int currentRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
+                int lastCalcRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
                 targetRpm = idealRpm;
 
-                if (idealRpm < currentRpm)
+                if (idealRpm < lastCalcRpm)
                 {
                     double dtSeconds = (now - lastTick) / (double)TimeSpan.TicksPerSecond;
                     int maxDrop = (int)(settings.StepDownRateRpmPerSec * dtSeconds);
-                    targetRpm = Math.Max(idealRpm, currentRpm - maxDrop);
-                    Logger.Debug($"Fan{fanId}: stepDown ideal={idealRpm} current={currentRpm} maxDrop={maxDrop} dtSec={dtSeconds:F4} -> target={targetRpm}");
+                    targetRpm = Math.Max(idealRpm, lastCalcRpm - maxDrop);
+                    Logger.Debug($"Fan{fanId}: stepDown ideal={idealRpm} current={lastCalcRpm} maxDrop={maxDrop} dtSec={dtSeconds:F4} -> target={targetRpm}");
                 }
 
                 int minRpm = _hardware.GetMinRpm(fanId);
@@ -487,47 +484,36 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 targetRpm = cachedRpm;
             }
 
-            var rpm = 0;
-            try
-            {
-                rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
-            }
-            catch { /* Ignore */ }
-
             var hadLast = _lastAppliedRpm.TryGetValue(fanId, out var lastApplied);
             var delta = hadLast ? Math.Abs(lastApplied - targetRpm) : int.MaxValue;
 
-            var requiredDelta = isSteppingDown ? settings.StepDownSpamProtectionDelta : settings.MinimumRpmChangeToApply;
+            // Skip write if delta is below 200 RPM or target equals last written value
+            var isSameOrClose = hadLast && (delta < 200 || targetRpm == lastApplied);
+            var isSteppingToZero = isSteppingDown && targetRpm <= 0;
 
-            var shouldWrite = (!isSteppingDown && settings.AlwaysWriteRpm)
-                || (settings.ForceWriteWhenRpmZero && rpm == 0)
-                || !hadLast || delta >= requiredDelta;
+            var shouldWrite = !isSameOrClose
+                || isSteppingToZero
+                || (settings.ForceWriteWhenRpmZero && currentRpm == 0)
+                || settings.AlwaysWriteRpm;
 
-            Logger.Debug($"Fan{fanId}: shouldWrite={shouldWrite} targetRpm={targetRpm} rpm={rpm} lastApplied={lastApplied} delta={delta} isSteppingDown={isSteppingDown}");
+            Logger.Debug($"Fan{fanId}: shouldWrite={shouldWrite} targetRpm={targetRpm} currentRpm={currentRpm} lastApplied={lastApplied} delta={delta} isSteppingDown={isSteppingDown}");
 
-            return (shouldWrite, targetRpm, rpm);
+            return (shouldWrite, targetRpm, currentRpm);
         }
 
-        private async Task<int> WriteFanRpmAsync(int fanId, int targetRpm, int rpm)
+        private async Task<int> WriteFanRpmAsync(int fanId, int targetRpm, int currentRpm)
         {
             var settings = _configManager.Settings;
-            if (settings.SpinUpBoostEnabled && rpm == 0 && targetRpm < settings.SpinUpBoostRpm)
+            if (settings.SpinUpBoostEnabled && currentRpm == 0 && targetRpm < settings.SpinUpBoostRpm)
             {
                 await _hardware.SetFanRpmAsync(fanId, settings.SpinUpBoostRpm).ConfigureAwait(false);
                 await Task.Delay(settings.SpinUpBoostDurationMs);
             }
 
             await _hardware.SetFanRpmAsync(fanId, targetRpm).ConfigureAwait(false);
-            
-            int newRpm = rpm;
-            try
-            {
-                newRpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
-            }
-            catch { /* Ignore */ }
 
             _lastAppliedRpm[fanId] = targetRpm;
-            return newRpm;
+            return targetRpm;
         }
 
         private void TryUpdateMonitoring(int fanId, float temp, int rpm, int targetRpm, bool force)
@@ -541,7 +527,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
-        private void UpdateMonitoringOnly(HardwareSensorSnapshot snapshot)
+        private async Task UpdateMonitoringOnlyAsync(HardwareSensorSnapshot snapshot)
         {
             var cpuTemp = Math.Max(0, snapshot.CpuTemp);
             var gpuTemp = Math.Max(0, snapshot.GpuTemp);
@@ -553,7 +539,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var rpm = 0;
                 try
                 {
-                    rpm = _hardware.GetFanRpmAsync(fanId).GetAwaiter().GetResult();
+                    rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
                 }
                 catch { /* Ignore */ }
 
