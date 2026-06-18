@@ -52,6 +52,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int DerivativeLookaheadSeconds { get; set; } = 2;
 
         public bool IsSmartAutoEnabled { get; set; } = false;
+        public bool SyncFanLevel { get; set; } = true;
 
         public List<CustomFanCurveEntry> Entries { get; set; } = new();
     }

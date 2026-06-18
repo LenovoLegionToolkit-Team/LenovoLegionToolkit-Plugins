@@ -23,6 +23,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _sensorIntervalMs = s.SensorIntervalMs;
             _calculationDelayMs = s.CalculationDelayMs;
             _isSmartAutoEnabled = s.IsSmartAutoEnabled;
+            _syncFanLevel = s.SyncFanLevel;
             _powerDeltaThreshold = s.PowerDeltaThreshold;
             _temperatureDeltaThreshold = s.TemperatureDeltaThreshold;
             _ignoreZeroTemperature = s.IgnoreZeroTemperature;
@@ -68,6 +69,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.SensorIntervalMs), _sensorIntervalMs);
             Save(nameof(CustomFanCurveSettings.CalculationDelayMs), _calculationDelayMs);
             Save(nameof(CustomFanCurveSettings.IsSmartAutoEnabled), _isSmartAutoEnabled);
+            Save(nameof(CustomFanCurveSettings.SyncFanLevel), _syncFanLevel);
             Save(nameof(CustomFanCurveSettings.PowerDeltaThreshold), _powerDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.TemperatureDeltaThreshold), _temperatureDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.IgnoreZeroTemperature), _ignoreZeroTemperature);
@@ -184,6 +186,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (_isSmartAutoEnabled != value)
                 {
                     _isSmartAutoEnabled = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private bool _syncFanLevel;
+        public bool SyncFanLevel
+        {
+            get => _syncFanLevel;
+            set
+            {
+                if (_syncFanLevel != value)
+                {
+                    _syncFanLevel = value;
                     OnPropertyChanged();
                 }
             }

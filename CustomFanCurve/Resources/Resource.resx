@@ -117,11 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AcousticOffsetAddRpm" xml:space="preserve">
+    <value>Acoustic Offset Value (RPM)</value>
+  </data>
+  <data name="AcousticOffsetAddRpmDesc" xml:space="preserve">
+    <value>The exact RPM amount added to offset the secondary fan.</value>
+  </data>
+  <data name="AcousticOffsetDeltaRpm" xml:space="preserve">
+    <value>Acoustic Offset Delta (RPM)</value>
+  </data>
+  <data name="AcousticOffsetDeltaRpmDesc" xml:space="preserve">
+    <value>Maximum difference in RPM between fans before acoustic offsetting triggers.</value>
+  </data>
+  <data name="AcousticTuning" xml:space="preserve">
+    <value>Acoustic Tuning</value>
+  </data>
   <data name="AddNodeTooltip" xml:space="preserve">
     <value>Add a new control point at the end of the curve</value>
   </data>
   <data name="Advanced" xml:space="preserve">
     <value>Advanced</value>
+  </data>
+  <data name="AlwaysWriteRpm" xml:space="preserve">
+    <value>Always Write RPM</value>
+  </data>
+  <data name="AlwaysWriteRpmDesc" xml:space="preserve">
+    <value>Force write the fan speed to the EC every cycle even if unchanged.</value>
   </data>
   <data name="ApplyToAllModes" xml:space="preserve">
     <value>Apply to All Power Modes</value>
@@ -150,6 +171,15 @@
   <data name="ClearCacheOnLeaveDesc" xml:space="preserve">
     <value>Clear cached RPM/temperature state</value>
   </data>
+  <data name="CpuFan" xml:space="preserve">
+    <value>CPU Fan</value>
+  </data>
+  <data name="CriticalTemp" xml:space="preserve">
+    <value>Critical Temperature (°C)</value>
+  </data>
+  <data name="CriticalTempDesc" xml:space="preserve">
+    <value>Force maximum fan speed regardless of curve at this temperature.</value>
+  </data>
   <data name="CurrentSpeed" xml:space="preserve">
     <value>Current Speed</value>
   </data>
@@ -162,6 +192,30 @@
   <data name="DeleteNode" xml:space="preserve">
     <value>Delete this node</value>
   </data>
+  <data name="DerivativeLookaheadSeconds" xml:space="preserve">
+    <value>Predictive Lookahead (Seconds)</value>
+  </data>
+  <data name="DerivativeLookaheadSecondsDesc" xml:space="preserve">
+    <value>How far into the future to predict temperatures when a spike is detected.</value>
+  </data>
+  <data name="DerivativeSpikeThreshold" xml:space="preserve">
+    <value>Temperature Spike Threshold (°C/s)</value>
+  </data>
+  <data name="DerivativeSpikeThresholdDesc" xml:space="preserve">
+    <value>Sudden temperature spike rate required to activate predictive cooling.</value>
+  </data>
+  <data name="EmaAlpha" xml:space="preserve">
+    <value>Temperature Smoothing (EMA Alpha)</value>
+  </data>
+  <data name="EmaAlphaDesc" xml:space="preserve">
+    <value>Weight of new temperature readings. Lower = smoother but slower.</value>
+  </data>
+  <data name="EnableAcousticOffset" xml:space="preserve">
+    <value>Enable Acoustic Offsetting</value>
+  </data>
+  <data name="EnableAcousticOffsetDesc" xml:space="preserve">
+    <value>Prevents annoying beat frequencies by shifting fan speeds when they are too similar.</value>
+  </data>
   <data name="EnableCurve" xml:space="preserve">
     <value>Enable Custom Fan Curve</value>
   </data>
@@ -171,8 +225,14 @@
   <data name="EnableCustomFanCurve" xml:space="preserve">
     <value>Enable Custom Fan Curve</value>
   </data>
+  <data name="EnableSmartAuto" xml:space="preserve">
+    <value>Enable Smart Auto (Experimental)</value>
+  </data>
   <data name="EnableSpinUp" xml:space="preserve">
     <value>Enable Spin-Up Boost</value>
+  </data>
+  <data name="EnableSpinUpDesc" xml:space="preserve">
+    <value>Briefly pulses the fans at high speed to overcome static friction before settling to low targets.</value>
   </data>
   <data name="FanSpeed" xml:space="preserve">
     <value>Fan Speed</value>
@@ -180,11 +240,20 @@
   <data name="ForceRefreshOnEnable" xml:space="preserve">
     <value>Force Refresh on Enable</value>
   </data>
+  <data name="ForceRefreshOnEnableDesc" xml:space="preserve">
+    <value>Immediately synchronizes the hardware cooling state when the custom curve is activated.</value>
+  </data>
   <data name="ForceRefreshOnSwitch" xml:space="preserve">
     <value>Force Refresh on Mode Switch</value>
   </data>
   <data name="ForceRefreshOnSwitchDesc" xml:space="preserve">
     <value>Re-apply fan control after switching power modes</value>
+  </data>
+  <data name="ForceWriteWhenRpmZero" xml:space="preserve">
+    <value>Force Write When Target is 0</value>
+  </data>
+  <data name="ForceWriteWhenRpmZeroDesc" xml:space="preserve">
+    <value>Always write to the EC if the target RPM is 0 to ensure fans actually stop.</value>
   </data>
   <data name="FullSpeedActive" xml:space="preserve">
     <value>Full Speed...</value>
@@ -195,6 +264,18 @@
   <data name="GlobalSettingsTooltip" xml:space="preserve">
     <value>Open global settings</value>
   </data>
+  <data name="GpuFan" xml:space="preserve">
+    <value>GPU Fan</value>
+  </data>
+  <data name="Hysteresis" xml:space="preserve">
+    <value>Hysteresis</value>
+  </data>
+  <data name="HysteresisDeadzoneTemp" xml:space="preserve">
+    <value>Hysteresis Deadzone Temp (°C)</value>
+  </data>
+  <data name="HysteresisDeadzoneTempDesc" xml:space="preserve">
+    <value>Temperature padding to prevent fans from aggressively ramping up and down when hovering on a curve node.</value>
+  </data>
   <data name="IgnoreZeroTemp" xml:space="preserve">
     <value>Ignore Zero Temperature</value>
   </data>
@@ -204,17 +285,35 @@
   <data name="LiveMonitor" xml:space="preserve">
     <value>Live Monitor</value>
   </data>
+  <data name="MathematicalConstants" xml:space="preserve">
+    <value>Thermal Safety &amp; Smoothing</value>
+  </data>
   <data name="MaxSpeed" xml:space="preserve">
     <value>Max Speed</value>
   </data>
   <data name="MaxSpeedTooltip" xml:space="preserve">
     <value>Run all fans at maximum speed</value>
   </data>
+  <data name="MinimumRpmChangeToApply" xml:space="preserve">
+    <value>Minimum RPM Change to Apply</value>
+  </data>
+  <data name="MinimumRpmChangeToApplyDesc" xml:space="preserve">
+    <value>Ignore target RPM changes smaller than this value to reduce EC writes.</value>
+  </data>
   <data name="ModeSwitch" xml:space="preserve">
     <value>Mode Switch</value>
   </data>
   <data name="ModeSwitchTitle" xml:space="preserve">
     <value>Power/Thermal Mode Switch Behavior</value>
+  </data>
+  <data name="PowerDeltaThreshold" xml:space="preserve">
+    <value>Power Delta Threshold (W)</value>
+  </data>
+  <data name="PowerDeltaThresholdDesc" xml:space="preserve">
+    <value>Minimum change in wattage before forcing a recalculation</value>
+  </data>
+  <data name="PredictiveEngine" xml:space="preserve">
+    <value>Predictive Engine</value>
   </data>
   <data name="RecoverCurve" xml:space="preserve">
     <value>Click to restore custom curve</value>
@@ -230,6 +329,24 @@
   </data>
   <data name="RefreshIntervalDesc" xml:space="preserve">
     <value>Delay between multiple refreshes, default 250ms</value>
+  </data>
+  <data name="SafeMaxPercentAtMaxTemp" xml:space="preserve">
+    <value>Safe Minimum Fan Percentage (%)</value>
+  </data>
+  <data name="SafeMaxPercentAtMaxTempDesc" xml:space="preserve">
+    <value>The guaranteed minimum fan percentage when the hardware reaches the critical maximum temperature.</value>
+  </data>
+  <data name="SafeMaxTemp" xml:space="preserve">
+    <value>Safe Maximum Temperature (°C)</value>
+  </data>
+  <data name="SafeMaxTempDesc" xml:space="preserve">
+    <value>The temperature at which the safety net enforces its maximum guaranteed minimum fan speed.</value>
+  </data>
+  <data name="SafeMinTemp" xml:space="preserve">
+    <value>Safe Minimum Temperature (°C)</value>
+  </data>
+  <data name="SafeMinTempDesc" xml:space="preserve">
+    <value>The minimum bound for safe hardware temperature evaluation.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
@@ -249,11 +366,47 @@
   <data name="SensorPolling" xml:space="preserve">
     <value>Sensor Polling</value>
   </data>
+  <data name="SensorSource" xml:space="preserve">
+    <value>Sensor Source</value>
+  </data>
+  <data name="SensorSourceAverageCpuGpu" xml:space="preserve">
+    <value>Average of CPU / GPU</value>
+  </data>
+  <data name="SensorSourceDefault" xml:space="preserve">
+    <value>System Default (Auto)</value>
+  </data>
+  <data name="SensorSourceDesc" xml:space="preserve">
+    <value>Selects which hardware temperature this fan curve actively monitors and responds to.</value>
+  </data>
+  <data name="SensorSourceMaxCpuGpu" xml:space="preserve">
+    <value>Maximum of CPU / GPU</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Global Settings</value>
   </data>
   <data name="SettingsWindowTitle" xml:space="preserve">
     <value>Global Settings — Custom Fan Curve (WMI)</value>
+  </data>
+  <data name="SmartAutoDashboardSubtitle" xml:space="preserve">
+    <value>Manual fan curves are disabled. The Fuzzy Logic engine is managing thermals based on power consumption.</value>
+  </data>
+  <data name="SmartAutoDashboardTitle" xml:space="preserve">
+    <value>Autonomous Thermal Control</value>
+  </data>
+  <data name="SmartAutoDecision" xml:space="preserve">
+    <value>Decision:</value>
+  </data>
+  <data name="SmartAutoDescription" xml:space="preserve">
+    <value>Autonomously controls fan speeds using Fuzzy Logic based on hardware temperature and power draw. Disables manual fan curves.</value>
+  </data>
+  <data name="SmartAutoPowerLoad" xml:space="preserve">
+    <value>Power Load:</value>
+  </data>
+  <data name="SmartAutoTargetOutput" xml:space="preserve">
+    <value>Fan Speed:</value>
+  </data>
+  <data name="SmartAutoThermalState" xml:space="preserve">
+    <value>Thermal State:</value>
   </data>
   <data name="SpinUpBoost" xml:space="preserve">
     <value>Spin-Up Boost</value>
@@ -273,6 +426,27 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   </data>
   <data name="SpinUpRpmDesc" xml:space="preserve">
     <value>Temporary RPM during spin-up, default 3000</value>
+  </data>
+  <data name="StepDownRate" xml:space="preserve">
+    <value>Step-Down Glide Rate (RPM/sec)</value>
+  </data>
+  <data name="StepDownRateDesc" xml:space="preserve">
+    <value>Maximum RPM drop per second while cooling down.</value>
+  </data>
+  <data name="StepDownSpamDelta" xml:space="preserve">
+    <value>Step-Down Protection Delta (RPM)</value>
+  </data>
+  <data name="StepDownSpamDeltaDesc" xml:space="preserve">
+    <value>Minimum RPM drop required before sending a hardware command.</value>
+  </data>
+  <data name="SyncFanLevel" xml:space="preserve">
+    <value>Sync Fan Level</value>
+  </data>
+  <data name="SyncFanLevelDesc" xml:space="preserve">
+    <value>All fans respond to the highest result.</value>
+  </data>
+  <data name="SystemFan" xml:space="preserve">
+    <value>System Fan</value>
   </data>
   <data name="TargetPercent" xml:space="preserve">
     <value>Target fan speed percentage (0-100)</value>
@@ -295,41 +469,17 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   <data name="UiAndMonitoring" xml:space="preserve">
     <value>UI &amp; Monitoring</value>
   </data>
+  <data name="UiDebounceDelay" xml:space="preserve">
+    <value>UI Save Debounce Delay (ms)</value>
+  </data>
+  <data name="UiDebounceDelayDesc" xml:space="preserve">
+    <value>Delay before writing to disk after dragging a curve node.</value>
+  </data>
   <data name="UiUpdateInterval" xml:space="preserve">
     <value>UI Update Interval (ms)</value>
   </data>
   <data name="UiUpdateIntervalDesc" xml:space="preserve">
     <value>Monitor panel refresh interval, default 1000ms</value>
-  </data>
-  <data name="EnableSmartAuto" xml:space="preserve">
-    <value>Enable Smart Auto (Experimental)</value>
-  </data>
-  <data name="SmartAutoDescription" xml:space="preserve">
-    <value>Autonomously controls fan speeds using Fuzzy Logic based on hardware temperature and power draw. Disables manual fan curves.</value>
-  </data>
-  <data name="SmartAutoDashboardTitle" xml:space="preserve">
-    <value>Autonomous Thermal Control</value>
-  </data>
-  <data name="SmartAutoDashboardSubtitle" xml:space="preserve">
-    <value>Manual fan curves are disabled. The Fuzzy Logic engine is managing thermals based on power consumption.</value>
-  </data>
-  <data name="SmartAutoThermalState" xml:space="preserve">
-    <value>Thermal State:</value>
-  </data>
-  <data name="SmartAutoPowerLoad" xml:space="preserve">
-    <value>Power Load:</value>
-  </data>
-  <data name="SmartAutoDecision" xml:space="preserve">
-    <value>Decision:</value>
-  </data>
-  <data name="SmartAutoTargetOutput" xml:space="preserve">
-    <value>Fan Speed:</value>
-  </data>
-  <data name="PowerDeltaThreshold" xml:space="preserve">
-    <value>Power Delta Threshold (W)</value>
-  </data>
-  <data name="PowerDeltaThresholdDesc" xml:space="preserve">
-    <value>Minimum change in wattage before forcing a recalculation</value>
   </data>
   <data name="UseCachedSnapshot" xml:space="preserve">
     <value>Use Cached Snapshot for Forced Refresh</value>
@@ -345,149 +495,5 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   </data>
   <data name="WriteEachCycleDesc" xml:space="preserve">
     <value>Write max RPM every calculation cycle in full speed mode</value>
-  </data>
-  <data name="CpuFan" xml:space="preserve">
-    <value>CPU Fan</value>
-  </data>
-  <data name="GpuFan" xml:space="preserve">
-    <value>GPU Fan</value>
-  </data>
-  <data name="SystemFan" xml:space="preserve">
-    <value>System Fan</value>
-  </data>
-  <data name="EmaAlpha" xml:space="preserve">
-    <value>Temperature Smoothing (EMA Alpha)</value>
-  </data>
-  <data name="EmaAlphaDesc" xml:space="preserve">
-    <value>Weight of new temperature readings. Lower = smoother but slower.</value>
-  </data>
-  <data name="StepDownRate" xml:space="preserve">
-    <value>Step-Down Glide Rate (RPM/sec)</value>
-  </data>
-  <data name="StepDownRateDesc" xml:space="preserve">
-    <value>Maximum RPM drop per second while cooling down.</value>
-  </data>
-  <data name="StepDownSpamDelta" xml:space="preserve">
-    <value>Step-Down Protection Delta (RPM)</value>
-  </data>
-  <data name="StepDownSpamDeltaDesc" xml:space="preserve">
-    <value>Minimum RPM drop required before sending a hardware command.</value>
-  </data>
-  <data name="UiDebounceDelay" xml:space="preserve">
-    <value>UI Save Debounce Delay (ms)</value>
-  </data>
-  <data name="UiDebounceDelayDesc" xml:space="preserve">
-    <value>Delay before writing to disk after dragging a curve node.</value>
-  </data>
-  <data name="SafeMinTemp" xml:space="preserve">
-    <value>Safe Minimum Temperature (°C)</value>
-  </data>
-  <data name="SafeMaxTemp" xml:space="preserve">
-    <value>Safe Maximum Temperature (°C)</value>
-  </data>
-  <data name="SafeMaxPercentAtMaxTemp" xml:space="preserve">
-    <value>Safe Minimum Fan Percentage (%)</value>
-  </data>
-  <data name="EnableAcousticOffset" xml:space="preserve">
-    <value>Enable Acoustic Offsetting</value>
-  </data>
-  <data name="AcousticOffsetDeltaRpm" xml:space="preserve">
-    <value>Acoustic Offset Delta (RPM)</value>
-  </data>
-  <data name="AcousticOffsetAddRpm" xml:space="preserve">
-    <value>Acoustic Offset Value (RPM)</value>
-  </data>
-  <data name="HysteresisDeadzoneTemp" xml:space="preserve">
-    <value>Hysteresis Deadzone Temp (°C)</value>
-  </data>
-  <data name="DerivativeSpikeThreshold" xml:space="preserve">
-    <value>Temperature Spike Threshold (°C/s)</value>
-  </data>
-  <data name="DerivativeLookaheadSeconds" xml:space="preserve">
-    <value>Predictive Lookahead (Seconds)</value>
-  </data>
-  <data name="SensorSource" xml:space="preserve">
-    <value>Sensor Source</value>
-  </data>
-  <data name="SensorSourceDesc" xml:space="preserve">
-    <value>Selects which hardware temperature this fan curve actively monitors and responds to.</value>
-  </data>
-  <data name="MathematicalConstants" xml:space="preserve">
-    <value>Thermal Safety &amp; Smoothing</value>
-  </data>
-  <data name="AcousticTuning" xml:space="preserve">
-    <value>Acoustic Tuning</value>
-  </data>
-  <data name="PredictiveEngine" xml:space="preserve">
-    <value>Predictive Engine</value>
-  </data>
-  <data name="Hysteresis" xml:space="preserve">
-    <value>Hysteresis</value>
-  </data>
-  <data name="EnableAcousticOffsetDesc" xml:space="preserve">
-    <value>Prevents annoying beat frequencies by shifting fan speeds when they are too similar.</value>
-  </data>
-  <data name="AcousticOffsetDeltaRpmDesc" xml:space="preserve">
-    <value>Maximum difference in RPM between fans before acoustic offsetting triggers.</value>
-  </data>
-  <data name="AcousticOffsetAddRpmDesc" xml:space="preserve">
-    <value>The exact RPM amount added to offset the secondary fan.</value>
-  </data>
-  <data name="HysteresisDeadzoneTempDesc" xml:space="preserve">
-    <value>Temperature padding to prevent fans from aggressively ramping up and down when hovering on a curve node.</value>
-  </data>
-  <data name="DerivativeSpikeThresholdDesc" xml:space="preserve">
-    <value>Sudden temperature spike rate required to activate predictive cooling.</value>
-  </data>
-  <data name="DerivativeLookaheadSecondsDesc" xml:space="preserve">
-    <value>How far into the future to predict temperatures when a spike is detected.</value>
-  </data>
-  <data name="EnableSpinUpDesc" xml:space="preserve">
-    <value>Briefly pulses the fans at high speed to overcome static friction before settling to low targets.</value>
-  </data>
-  <data name="ForceRefreshOnEnableDesc" xml:space="preserve">
-    <value>Immediately synchronizes the hardware cooling state when the custom curve is activated.</value>
-  </data>
-  <data name="SafeMinTempDesc" xml:space="preserve">
-    <value>The minimum bound for safe hardware temperature evaluation.</value>
-  </data>
-  <data name="SafeMaxTempDesc" xml:space="preserve">
-    <value>The temperature at which the safety net enforces its maximum guaranteed minimum fan speed.</value>
-  </data>
-  <data name="SafeMaxPercentAtMaxTempDesc" xml:space="preserve">
-    <value>The guaranteed minimum fan percentage when the hardware reaches the critical maximum temperature.</value>
-  </data>
-  <data name="SensorSourceDefault" xml:space="preserve">
-    <value>System Default (Auto)</value>
-  </data>
-  <data name="SensorSourceMaxCpuGpu" xml:space="preserve">
-    <value>Maximum of CPU / GPU</value>
-  </data>
-  <data name="SensorSourceAverageCpuGpu" xml:space="preserve">
-    <value>Average of CPU / GPU</value>
-  </data>
-  <data name="CriticalTemp" xml:space="preserve">
-    <value>Critical Temperature (°C)</value>
-  </data>
-  <data name="CriticalTempDesc" xml:space="preserve">
-    <value>Force maximum fan speed regardless of curve at this temperature.</value>
-  </data>
-  <data name="AlwaysWriteRpm" xml:space="preserve">
-    <value>Always Write RPM</value>
-  </data>
-  <data name="AlwaysWriteRpmDesc" xml:space="preserve">
-    <value>Force write the fan speed to the EC every cycle even if unchanged.</value>
-  </data>
-  <data name="ForceWriteWhenRpmZero" xml:space="preserve">
-    <value>Force Write When Target is 0</value>
-  </data>
-  <data name="ForceWriteWhenRpmZeroDesc" xml:space="preserve">
-    <value>Always write to the EC if the target RPM is 0 to ensure fans actually stop.</value>
-  </data>
-  <data name="MinimumRpmChangeToApply" xml:space="preserve">
-    <value>Minimum RPM Change to Apply</value>
-  </data>
-  <data name="MinimumRpmChangeToApplyDesc" xml:space="preserve">
-    <value>Ignore target RPM changes smaller than this value to reduce EC writes.</value>
   </data>
 </root>

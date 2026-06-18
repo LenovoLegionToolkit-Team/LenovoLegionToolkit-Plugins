@@ -379,13 +379,44 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
             }
 
+            if (!_isFullSpeed && _configManager.Settings.SyncFanLevel && results.Count > 0)
+            {
+                double maxPercent = 0;
+                foreach (var kv in results)
+                {
+                    int fanId = kv.Key;
+                    int maxRpm = _hardware.GetMaxRpm(fanId);
+                    if (maxRpm > 0)
+                    {
+                        double percent = (double)kv.Value.TargetRpm / maxRpm * 100.0;
+                        if (percent > maxPercent) maxPercent = percent;
+                    }
+                }
+
+                foreach (var fanId in results.Keys.ToList())
+                {
+                    var (ShouldWrite, TargetRpm, CurrentRpm, Temp) = results[fanId];
+                    int maxRpm = _hardware.GetMaxRpm(fanId);
+                    int newTargetRpm = (int)Math.Round(maxPercent / 100.0 * maxRpm);
+                    int minRpm = _hardware.GetMinRpm(fanId);
+                    if (newTargetRpm > 0 && newTargetRpm < minRpm) newTargetRpm = minRpm;
+                    newTargetRpm = Math.Clamp(newTargetRpm, 0, maxRpm);
+
+                    if (newTargetRpm != TargetRpm)
+                    {
+                        Logger.Debug($"Fan{fanId}: SyncFanLevel override {TargetRpm} -> {newTargetRpm} RPM (maxPercent={maxPercent:F1}%)");
+                        results[fanId] = (true, newTargetRpm, CurrentRpm, Temp);
+                    }
+                }
+            }
+
             if (!_isFullSpeed)
             {
                 foreach (var fanId in results.Keys.ToList())
                 {
                     var r = results[fanId];
                     int finalRpm = r.CurrentRpm;
-                    
+
                     if (r.ShouldWrite)
                     {
                         finalRpm = await WriteFanRpmAsync(fanId, r.TargetRpm, r.CurrentRpm);
@@ -394,9 +425,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     {
                         finalRpm = lastApplied;
                     }
-                    
+
                     results[fanId] = (r.ShouldWrite, r.TargetRpm, finalRpm, r.Temp);
-                    
+
                     TryUpdateMonitoring(fanId, r.Temp, finalRpm, r.TargetRpm, false);
                 }
             }
@@ -417,7 +448,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             if (entry.SensorSource == SensorSource.MaxCpuGpu) return Math.Max(cpuTemp, gpuTemp);
             if (entry.SensorSource == SensorSource.AverageCpuGpu) return (cpuTemp + gpuTemp) / 2.0f;
-            
+
             for (var i = 0; i < fanIds.Count; i++)
             {
                 if (fanIds[i] == entry.FanId)
@@ -586,6 +617,31 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             else
             {
                 targetRpm = cachedRpm;
+            }
+
+            // When the fan curve says stop (targetRpm ≤ 0) but the fan is still
+            // spinning, the EC refuse a direct 0-RPM write because another fan still holds an
+            // active override flag. Step down 100 RPM per cycle until minRpm, then write 0.
+            if (targetRpm <= 0 && currentRpm > 0)
+            {
+                int baseRpm = _lastCalcRpm.TryGetValue(fanId, out int lc) && lc > 0 ? lc : currentRpm;
+                int minRpm = _hardware.GetMinRpm(fanId);
+
+                if (baseRpm <= minRpm)
+                {
+                    targetRpm = 0;
+                }
+                else if (baseRpm - 100 <= minRpm)
+                {
+                    targetRpm = minRpm;
+                }
+                else
+                {
+                    targetRpm = baseRpm - 100;
+                }
+
+                _lastCalcRpm[fanId] = targetRpm;
+                Logger.Debug($"Fan{fanId}: softLanding baseRpm={baseRpm} minRpm={minRpm} currentRpm={currentRpm} -> targetRpm={targetRpm}");
             }
 
             var hadLast = _lastAppliedRpm.TryGetValue(fanId, out var lastApplied);
