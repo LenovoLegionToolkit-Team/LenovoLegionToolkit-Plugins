@@ -11,6 +11,42 @@
 *.sln.docstates
 *.env
 
+# Project-specific exclusions
+**/Resource.Designer.cs
+
+# AI Tooling and Agents
+# (Standard ignore patterns for AI caches, history, and state)
+.gemini/
+.cursor/
+!.cursor/rules/
+.cursorignore
+.cline/
+.clineignore
+cline_docs/
+.aider/
+.aider*
+*.aider.md
+.copilot/
+copilot/
+.claude/
+.claudecode/
+.devin/
+.roo/
+.sweep/
+.continue/
+.windsurf/
+.codeium/
+.cody/
+.bito/
+.chat/
+.aiignore
+.agent/
+.agents/
+agent/
+agents/
+.crewai/
+.autogen/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
