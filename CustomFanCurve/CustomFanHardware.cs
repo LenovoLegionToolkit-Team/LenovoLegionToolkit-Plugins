@@ -111,17 +111,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Logger.Debug("Slow probe: scanning fan IDs 1, 2, 4 sequentially...");
             foreach (var fanId in new[] { 1, 2, 4 })
             {
-                var cid = GetCapabilityForFanId(fanId);
-                Logger.Debug($"Slow probe: starting probe for fanId={fanId} capability={cid}");
-
-                var maxRpm = await ProbeMaxRpmAsync(cid).ConfigureAwait(false);
-                await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, 0).ConfigureAwait(false);
-                Logger.Debug($"Slow probe: fanId={fanId} capability={cid} maxRpm={maxRpm}");
-
-                if (maxRpm > 0)
+                try
                 {
-                    _fanIds.Add(fanId);
-                    _maxRpms[fanId] = maxRpm;
+                    var cid = GetCapabilityForFanId(fanId);
+                    Logger.Debug($"Slow probe: starting probe for fanId={fanId} capability={cid}");
+
+                    var maxRpm = await ProbeMaxRpmAsync(cid).ConfigureAwait(false);
+                    await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, 0).ConfigureAwait(false);
+                    Logger.Debug($"Slow probe: fanId={fanId} capability={cid} maxRpm={maxRpm}");
+
+                    if (maxRpm > 0)
+                    {
+                        _fanIds.Add(fanId);
+                        _maxRpms[fanId] = maxRpm;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"Slow probe failed for fanId={fanId}: {ex.GetType().Name}: {ex.Message}");
                 }
             }
         }
