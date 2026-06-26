@@ -18,7 +18,7 @@ Provides advanced, algorithm-driven control over the cooling system on supported
 # Screenshots
 
 ### CustomFanCurve
-<img src="assets/Dashboard.png" width="49%" /> <img src="assets/Settings.png" width="49%" />
+<img src="assets/Dashboard.png" height="320" /> <img src="assets/Settings.png" height="320" />
 
 ## Developing a Plugin
 
