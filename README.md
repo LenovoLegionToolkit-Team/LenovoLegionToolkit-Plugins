@@ -12,8 +12,12 @@ Provides advanced, algorithm-driven control over the cooling system on supported
 - **Predictive Engine:** Calculus-based derivative lookahead ($dT/dt$) to proactively spool up fans before thermal saturation.
 - **Acoustic Tuning:** Harmonic interference prevention that mathematically shifts fan RPMs to cancel out annoying beat frequencies.
 - **Thermal Smoothing & Hysteresis:** Exponential Moving Average (EMA) and deadzone buffers to prevent rapid fan cycling and jitter.
+- **Thermal Safety Net:** Emergency override protection that automatically ramps up fans if temperatures approach critical thresholds, regardless of the active curve settings.
 - **Smart Auto Mode:** Fuzzy-logic powered auto control that smoothly scales fans using continuous thermal and power load gradients.
 - **Asymmetric Step-Down:** Smooth fan deceleration curves to mitigate audible chopping and prevent physical bearing wear.
+- **Spin-Up Boost:** Applies a brief, high-RPM burst when starting a fan from 0 RPM to reliably overcome physical bearing static friction.
+- **Fan Speed Synchronization:** Automatically scales all fans to match the highest relative speed percentage demanded by the system, balancing airflow.
+- **Full Speed Mode:** A quick override to instantly trigger all fans to run at 100% maximum speed.
 
 # Screenshots
 
@@ -28,6 +32,7 @@ To create a new plugin for LLT:
 2. **Add Project References**: Reference `LenovoLegionToolkit.Lib` in your `.csproj`. Set `<Private>false</Private>` and `<ExcludeAssets>runtime</ExcludeAssets>` to prevent bundling core dependencies into your plugin.
 3. **Implement `IExtensionProvider`**: Create a public class that implements `LenovoLegionToolkit.Lib.Station.Core.IExtensionProvider`. The application discovers plugins by scanning for this interface at load time.
 4. **Register Navigation**: In your `Initialize(IExtensionContext context)` method, register your UI pages via `context.Navigation.Register()`. Use `TitleGetter` to return localized strings from your `.resx` files.
+5. **Use Logger**: Use `context.Logger.Trace(string message)` and `context.Logger.Error(string message, Exception ex)` to write logs. The host application automatically routes these logs to `%LOCALAPPDATA%\LenovoLegionToolkit\log\plugin_{pluginId}.log` and handles thread-safety and startup log rotation.
 
 Example `Provider.cs`:
 ```csharp
@@ -42,6 +47,8 @@ public sealed class MyPluginProvider : IExtensionProvider
 {
     public void Initialize(IExtensionContext context)
     {
+        context.Logger.Trace("Initializing MyPlugin...");
+
         context.Navigation.Register(new ExtensionNavigationItem
         {
             Id = "my-plugin-id",

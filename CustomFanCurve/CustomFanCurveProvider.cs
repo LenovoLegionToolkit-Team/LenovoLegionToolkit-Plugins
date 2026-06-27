@@ -7,6 +7,7 @@ using LenovoLegionToolkit.Lib.Controllers.Sensors;
 using LenovoLegionToolkit.Lib.Station.Core;
 using LenovoLegionToolkit.Lib.Station.Services;
 using LenovoLegionToolkit.Lib.Utils;
+using LenovoLegionToolkit.Lib.Station.Logging;
 using LenovoLegionToolkit.Plugin.CustomFanCurve.Resources;
 
 namespace LenovoLegionToolkit.Plugin.CustomFanCurve
@@ -14,17 +15,42 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     internal static class Logger
     {
         private static CustomFanCurveConfigManager? _configManager;
+        private static IExtensionLogger? _extensionLogger;
 
-        public static void Init(CustomFanCurveConfigManager cm)
+        public static void Init(CustomFanCurveConfigManager cm, IExtensionLogger logger)
         {
             _configManager = cm;
+            _extensionLogger = logger;
         }
 
         public static void Debug(string message, [CallerMemberName] string? caller = null)
         {
             if (_configManager?.Settings.DebugMode == true)
             {
-                Log.Instance.Trace($"[CustomFanCurve.{caller}] {message}");
+                _extensionLogger?.Trace($"[{caller}] {message}");
+            }
+        }
+
+        public static void Error(string message, Exception? ex = null, [CallerMemberName] string? caller = null)
+        {
+            if (_extensionLogger != null)
+            {
+                if (ex != null)
+                    _extensionLogger.Error($"[{caller}] {message}", ex);
+                else
+                    _extensionLogger.Trace($"[{caller}] ERROR: {message}");
+            }
+            else
+            {
+                if (ex != null)
+                {
+                    Log.Instance.ErrorReport($"[CustomFanCurve.{caller}] {message}", ex);
+                    Log.Instance.Trace($"[CustomFanCurve.{caller}] {message}", ex);
+                }
+                else
+                {
+                    Log.Instance.Trace($"[CustomFanCurve.{caller}] ERROR: {message}");
+                }
             }
         }
     }
@@ -91,7 +117,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _pluginSettings = new PluginSettings(storagePath);
             ConfigManager = new CustomFanCurveConfigManager(_pluginSettings);
             InstanceConfigManager = ConfigManager;
-            Logger.Init(ConfigManager);
+            Logger.Init(ConfigManager, context.Logger);
 
             ISensorsController? sensorsController = null;
             try 
@@ -157,8 +183,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             catch (Exception ex)
             {
-                Log.Instance.Trace($"[CustomFanCurve] Initialization failed: {ex.GetType().Name}: {ex.Message}");
-                Log.Instance.Trace($"[CustomFanCurve] Stack trace: {ex.StackTrace}");
+                Logger.Error("Initialization failed", ex);
             }
         }
     }

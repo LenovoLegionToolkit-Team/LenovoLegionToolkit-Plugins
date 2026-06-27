@@ -60,7 +60,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var prop = typeof(CustomFanCurveSettings).GetProperty(propertyName);
                 if (prop != null && prop.CanWrite)
                 {
+                    var oldValue = prop.GetValue(_settings);
                     prop.SetValue(_settings, value);
+                    Logger.Debug($"Setting '{propertyName}' updated from '{oldValue}' to '{value}'");
                     _store.Save(_settings);
                     SettingsChanged?.Invoke();
                 }
@@ -79,6 +81,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var existing = _settings.Entries.FirstOrDefault(e => e.FanId == entry.FanId);
                 if (existing != null) _settings.Entries.Remove(existing);
                 _settings.Entries.Add(entry);
+                Logger.Debug($"Saved fan curve entry for FanId {entry.FanId}: [{string.Join(", ", entry.Curve.Select(n => $"{n.Temperature}C:{n.TargetPercent}%"))}]");
                 _store.Save(_settings);
                 SettingsChanged?.Invoke();
             }
@@ -95,7 +98,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     if (existing != null) _settings.Entries.Remove(existing);
                     _settings.Entries.Add(entry);
                 }
-                
+                Logger.Debug($"Saved fan curve entry async for FanId {entry.FanId}: [{string.Join(", ", entry.Curve.Select(n => $"{n.Temperature}C:{n.TargetPercent}%"))}]");
                 await _store.SaveAsync(_settings);
                 SettingsChanged?.Invoke();
             }

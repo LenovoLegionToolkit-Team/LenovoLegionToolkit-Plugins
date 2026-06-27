@@ -41,7 +41,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             catch (Exception ex)
             {
-                Log.Instance.Trace($"CustomFanCurve load error: {ex.Message}");
+                Logger.Error("CustomFanCurve load error", ex);
             }
             finally
             {
@@ -65,7 +65,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             catch (Exception ex)
             {
-                Log.Instance.Trace($"CustomFanCurve save error: {ex.Message}");
+                Logger.Error("CustomFanCurve save error", ex);
             }
             finally
             {
@@ -87,7 +87,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             catch (Exception ex)
             {
-                Log.Instance.Trace($"CustomFanCurve async save error: {ex.Message}");
+                Logger.Error("CustomFanCurve async save error", ex);
             }
             finally
             {
