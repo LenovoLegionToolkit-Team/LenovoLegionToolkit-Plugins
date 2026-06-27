@@ -21,6 +21,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private double _graphWidth, _graphHeight;
         private CancellationTokenSource? _saveCts;
         private bool _isEnforcingMonotonicity;
+        private CurveNode? _nodeToSelectNext;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -212,12 +213,40 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private void AddPoint()
         {
-            var last = CurveNodes.LastOrDefault();
-            float temp = Math.Min((last?.Temperature ?? 45) + 5, 100);
-            int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temp);
-            int targetPercent = Math.Clamp(last?.TargetPercent ?? 50, safeMinPercent, 100);
-            
-            CurveNodes.Add(new CurveNode { Temperature = temp, TargetPercent = targetPercent });
+            float temp;
+            int targetPercent;
+
+            var selectedNode = SelectedNodeDisplay?.Node;
+            var sorted = CurveNodes.OrderBy(n => n.Temperature).ToList();
+
+            if (selectedNode != null)
+            {
+                int index = sorted.IndexOf(selectedNode);
+                if (index >= 0 && index < sorted.Count - 1)
+                {
+                    var nextNode = sorted[index + 1];
+                    temp = (selectedNode.Temperature + nextNode.Temperature) / 2f;
+                    targetPercent = (selectedNode.TargetPercent + nextNode.TargetPercent) / 2;
+                }
+                else
+                {
+                    temp = Math.Min(selectedNode.Temperature + 5, 100);
+                    int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temp);
+                    targetPercent = Math.Clamp(selectedNode.TargetPercent, safeMinPercent, 100);
+                }
+            }
+            else
+            {
+                var highest = sorted.LastOrDefault();
+                temp = Math.Min((highest?.Temperature ?? 45) + 5, 100);
+                int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temp);
+                targetPercent = Math.Clamp(highest?.TargetPercent ?? 50, safeMinPercent, 100);
+            }
+
+            var newNode = new CurveNode { Temperature = temp, TargetPercent = targetPercent };
+            _nodeToSelectNext = newNode;
+
+            CurveNodes.Add(newNode);
             _configManager.SaveEntry(_entry);
         }
 
@@ -250,7 +279,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var points = new List<Point>();
             var displays = new List<CurveNodeDisplay>();
             var hasSize = _graphWidth > 0 && _graphHeight > 0;
-            var selectedNode = SelectedNodeDisplay?.Node;
+            var selectedNode = _nodeToSelectNext ?? SelectedNodeDisplay?.Node;
+            _nodeToSelectNext = null;
             foreach (var node in sorted)
             {
                 double nx = Math.Clamp(node.Temperature / 100.0, 0, 1), ny = 1.0 - Math.Clamp(node.TargetPercent / 100.0, 0, 1);
