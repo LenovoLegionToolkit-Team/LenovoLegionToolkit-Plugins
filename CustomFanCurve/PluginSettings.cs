@@ -11,6 +11,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         private const string FileName = "custom_fan_curve_settings.json";
         private readonly string _filePath;
+        public string RecoveryDirectory => Path.Combine(Path.GetDirectoryName(_filePath)!, "Backups");
         private CustomFanCurveSettings? _cached;
         
         private readonly SemaphoreSlim _fileLock = new(1, 1);
@@ -55,17 +56,18 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public void Save(CustomFanCurveSettings settings)
         {
-            _cached = settings;
             _fileLock.Wait();
             try
             {
                 var dir = Path.GetDirectoryName(_filePath);
                 if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_filePath, JsonConvert.SerializeObject(settings, Formatting.Indented));
+                WriteAtomic(_filePath, JsonConvert.SerializeObject(settings, Formatting.Indented));
+                _cached = settings;
             }
             catch (Exception ex)
             {
                 Logger.Error("CustomFanCurve save error", ex);
+                throw;
             }
             finally
             {
@@ -75,7 +77,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public async Task SaveAsync(CustomFanCurveSettings settings)
         {
-            _cached = settings;
             await _fileLock.WaitAsync();
             try
             {
@@ -83,15 +84,39 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 
                 string json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                await File.WriteAllTextAsync(_filePath, json);
+                WriteAtomic(_filePath, json);
+                _cached = settings;
             }
             catch (Exception ex)
             {
                 Logger.Error("CustomFanCurve async save error", ex);
+                throw;
             }
             finally
             {
                 _fileLock.Release();
+            }
+        }
+
+        public void SaveRecoveryBackup(CustomFanCurveSettings settings)
+        {
+            var directory = Path.Combine(Path.GetDirectoryName(_filePath)!, "Backups");
+            Directory.CreateDirectory(directory);
+            WriteAtomic(Path.Combine(directory, $"before-change-{DateTime.UtcNow:yyyyMMdd-HHmmssfff}-{Guid.NewGuid():N}.json"),
+                ConfigurationBackup.Export(settings));
+        }
+
+        private static void WriteAtomic(string path, string json)
+        {
+            var temporaryPath = path + ".tmp";
+            try
+            {
+                File.WriteAllText(temporaryPath, json);
+                File.Move(temporaryPath, path, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
             }
         }
     }

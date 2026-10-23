@@ -1374,5 +1374,44 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
                 return ResourceManager.GetString("WriteEachCycleDesc", resourceCulture);
             }
         }
+        public static string ConfigurationTitle => ResourceManager.GetString("ConfigurationTitle", resourceCulture)!;
+        public static string CopyFanTitle => ResourceManager.GetString("CopyFanTitle", resourceCulture)!;
+        public static string CopyFanDescription => ResourceManager.GetString("CopyFanDescription", resourceCulture)!;
+        public static string CopyFrom => ResourceManager.GetString("CopyFrom", resourceCulture)!;
+        public static string CopyTo => ResourceManager.GetString("CopyTo", resourceCulture)!;
+        public static string CopyFanButton => ResourceManager.GetString("CopyFanButton", resourceCulture)!;
+        public static string ResetSelectedFan => ResourceManager.GetString("ResetSelectedFan", resourceCulture)!;
+        public static string SelectCopyTarget => ResourceManager.GetString("SelectCopyTarget", resourceCulture)!;
+        public static string BackupTitle => ResourceManager.GetString("BackupTitle", resourceCulture)!;
+        public static string BackupDescription => ResourceManager.GetString("BackupDescription", resourceCulture)!;
+        public static string ExportBackup => ResourceManager.GetString("ExportBackup", resourceCulture)!;
+        public static string ImportBackup => ResourceManager.GetString("ImportBackup", resourceCulture)!;
+        public static string OpenRecoveryBackups => ResourceManager.GetString("OpenRecoveryBackups", resourceCulture)!;
+        public static string ResetAllSettings => ResourceManager.GetString("ResetAllSettings", resourceCulture)!;
+        public static string ConfirmCopy => ResourceManager.GetString("ConfirmCopy", resourceCulture)!;
+        public static string ConfirmRestore => ResourceManager.GetString("ConfirmRestore", resourceCulture)!;
+        public static string ConfirmResetFan => ResourceManager.GetString("ConfirmResetFan", resourceCulture)!;
+        public static string ConfirmResetAll => ResourceManager.GetString("ConfirmResetAll", resourceCulture)!;
+        public static string ConfigurationSaved => ResourceManager.GetString("ConfigurationSaved", resourceCulture)!;
+        public static string BackupSaved => ResourceManager.GetString("BackupSaved", resourceCulture)!;
+        public static string ConfigurationFailed => ResourceManager.GetString("ConfigurationFailed", resourceCulture)!;
+        public static string BackupTooLarge => ResourceManager.GetString("BackupTooLarge", resourceCulture)!;
+        public static string ConfigurationCopyTab => ResourceManager.GetString("ConfigurationCopyTab", resourceCulture)!;
+        public static string ConfigurationBackupTab => ResourceManager.GetString("ConfigurationBackupTab", resourceCulture)!;
+        public static string ConfigurationDefaultsTab => ResourceManager.GetString("ConfigurationDefaultsTab", resourceCulture)!;
+        public static string ConfigurationExportDescription => ResourceManager.GetString("ConfigurationExportDescription", resourceCulture)!;
+        public static string ConfigurationImportDescription => ResourceManager.GetString("ConfigurationImportDescription", resourceCulture)!;
+        public static string ConfigurationRecoveryTitle => ResourceManager.GetString("ConfigurationRecoveryTitle", resourceCulture)!;
+        public static string ConfigurationRecoveryDescription => ResourceManager.GetString("ConfigurationRecoveryDescription", resourceCulture)!;
+        public static string ConfigurationResetFanDescription => ResourceManager.GetString("ConfigurationResetFanDescription", resourceCulture)!;
+        public static string ConfigurationResetAllDescription => ResourceManager.GetString("ConfigurationResetAllDescription", resourceCulture)!;
+        public static string ConfigurationClose => ResourceManager.GetString("ConfigurationClose", resourceCulture)!;
+        public static string ConfigurationSelectedFan => ResourceManager.GetString("ConfigurationSelectedFan", resourceCulture)!;
+        public static string ConfigurationExportTitle => ResourceManager.GetString("ConfigurationExportTitle", resourceCulture)!;
+        public static string ConfigurationRestoreTitle => ResourceManager.GetString("ConfigurationRestoreTitle", resourceCulture)!;
+        public static string ConfigurationExportAction => ResourceManager.GetString("ConfigurationExportAction", resourceCulture)!;
+        public static string ConfigurationRestoreAction => ResourceManager.GetString("ConfigurationRestoreAction", resourceCulture)!;
+        public static string ConfigurationHint => ResourceManager.GetString("ConfigurationHint", resourceCulture)!;
+        public static string ConfigurationConfirm => ResourceManager.GetString("ConfigurationConfirm", resourceCulture)!;
     }
 }

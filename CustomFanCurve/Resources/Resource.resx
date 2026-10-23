@@ -562,4 +562,43 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   <data name="WriteEachCycleDesc" xml:space="preserve">
     <value>Write max RPM every calculation cycle in full speed mode</value>
   </data>
+  <data name="ConfigurationTitle" xml:space="preserve"><value>Copy, backup and restore</value></data>
+  <data name="CopyFanTitle" xml:space="preserve"><value>Copy fan configuration</value></data>
+  <data name="CopyFanDescription" xml:space="preserve"><value>Copy the curve and sensor source to one or more fans. Each fan keeps its own maximum RPM calibration.</value></data>
+  <data name="CopyFrom" xml:space="preserve"><value>Copy from</value></data>
+  <data name="CopyTo" xml:space="preserve"><value>Copy to</value></data>
+  <data name="CopyFanButton" xml:space="preserve"><value>Copy to selected fans</value></data>
+  <data name="ResetSelectedFan" xml:space="preserve"><value>Reset source fan to defaults</value></data>
+  <data name="SelectCopyTarget" xml:space="preserve"><value>Select at least one destination fan.</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>Back up and restore everything</value></data>
+  <data name="BackupDescription" xml:space="preserve"><value>Export all curves and advanced settings to JSON. Restore a backup or an existing settings file. A recovery backup is saved before every copy, restore or reset. Hardware calibration is preserved on restore.</value></data>
+  <data name="ExportBackup" xml:space="preserve"><value>Export backup…</value></data>
+  <data name="ImportBackup" xml:space="preserve"><value>Restore backup…</value></data>
+  <data name="OpenRecoveryBackups" xml:space="preserve"><value>Restore an automatic backup…</value></data>
+  <data name="ResetAllSettings" xml:space="preserve"><value>Reset all settings to defaults…</value></data>
+  <data name="ConfirmCopy" xml:space="preserve"><value>Replace the curves and sensor sources of the selected fans? A recovery backup will be saved first.</value></data>
+  <data name="ConfirmRestore" xml:space="preserve"><value>Replace all curves and settings with this backup? Saved enable and full-speed states will also be restored. A recovery backup will be saved first. This machine's fan calibration will be preserved.</value></data>
+  <data name="ConfirmResetFan" xml:space="preserve"><value>Reset the source fan's curve and sensor source to plugin defaults? A recovery backup will be saved first.</value></data>
+  <data name="ConfirmResetAll" xml:space="preserve"><value>Reset all curves and settings to plugin defaults? Custom control and full speed will be disabled. A recovery backup will be saved first. This machine's fan calibration will be preserved.</value></data>
+  <data name="ConfigurationSaved" xml:space="preserve"><value>Configuration saved. A recovery backup is available.</value></data>
+  <data name="BackupSaved" xml:space="preserve"><value>Backup exported successfully.</value></data>
+  <data name="ConfigurationFailed" xml:space="preserve"><value>The operation failed.</value></data>
+  <data name="BackupTooLarge" xml:space="preserve"><value>The backup exceeds the 5 MB limit.</value></data>
+  <data name="ConfigurationCopyTab" xml:space="preserve"><value>Copy</value></data>
+  <data name="ConfigurationBackupTab" xml:space="preserve"><value>Backups</value></data>
+  <data name="ConfigurationDefaultsTab" xml:space="preserve"><value>Defaults</value></data>
+  <data name="ConfigurationExportDescription" xml:space="preserve"><value>Save all curves and advanced settings to a JSON file.</value></data>
+  <data name="ConfigurationImportDescription" xml:space="preserve"><value>Load a backup or an existing settings file.</value></data>
+  <data name="ConfigurationRecoveryTitle" xml:space="preserve"><value>Automatic backups</value></data>
+  <data name="ConfigurationRecoveryDescription" xml:space="preserve"><value>Recover settings saved before a copy, restore or reset.</value></data>
+  <data name="ConfigurationResetFanDescription" xml:space="preserve"><value>Restore this fan's default curve and sensor source.</value></data>
+  <data name="ConfigurationResetAllDescription" xml:space="preserve"><value>Restore plugin defaults and disable custom control and full speed. Hardware calibration is preserved.</value></data>
+  <data name="ConfigurationClose" xml:space="preserve"><value>Close</value></data>
+  <data name="ConfigurationSelectedFan" xml:space="preserve"><value>Selected fan</value></data>
+  <data name="ConfigurationExportTitle" xml:space="preserve"><value>Export backup</value></data>
+  <data name="ConfigurationRestoreTitle" xml:space="preserve"><value>Restore backup</value></data>
+  <data name="ConfigurationExportAction" xml:space="preserve"><value>Export…</value></data>
+  <data name="ConfigurationRestoreAction" xml:space="preserve"><value>Restore…</value></data>
+  <data name="ConfigurationHint" xml:space="preserve"><value>Changes apply immediately. Replaced settings are backed up automatically.</value></data>
+  <data name="ConfigurationConfirm" xml:space="preserve"><value>Confirm</value></data>
 </root>

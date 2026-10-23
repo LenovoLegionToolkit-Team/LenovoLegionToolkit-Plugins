@@ -18,6 +18,11 @@ Provides advanced, algorithm-driven control over the cooling system on supported
 - **Spin-Up Boost:** Applies a brief, high-RPM burst when starting a fan from 0 RPM to reliably overcome physical bearing static friction.
 - **Fan Speed Synchronization:** Automatically scales all fans to match the highest relative speed percentage demanded by the system, balancing airflow.
 - **Full Speed Mode:** A quick override to instantly trigger all fans to run at 100% maximum speed.
+- **Copy fan configuration:** Use the copy button beside Settings to copy a fan's curve and sensor source to one or more CPU/GPU/System fans. Curves are independent after copying; each fan keeps its own RPM calibration.
+- **Backup and restore:** Export all curves and advanced settings as a versioned JSON backup, or restore an existing backup or original `custom_fan_curve_settings.json` file. Invalid configurations are rejected before applying changes. Restore preserves this machine's detected maximum RPMs and adapts entries to its available fans.
+- **Reset and recovery:** Reset one fan or all plugin settings to defaults. Resetting everything disables custom control and full speed. Before copying, restoring or resetting, an automatic backup is written to the plugin's storage directory under `Backups`. Use **Restore an automatic backup** to undo an operation.
+
+If Toolkit exits at startup with `MissingMethodException: HardwareSensorSnapshot.get_CpuTemp()`, the installed plugin was built for an older sensor API. Rebuild CustomFanCurve against the same core source as your Toolkit installation and replace the plugin DLL. Current source uses the `SensorItem` indexer. Sensor callback failures are logged and return fan control to firmware rather than escaping into Toolkit's process.
 
 # Screenshots
 
@@ -94,6 +99,14 @@ dotnet build LenovoLegionToolkit-Plugins.slnx -c Release
 dotnet build CustomFanCurve/CustomFanCurve.csproj -c Release
 dotnet build AssemblyVersionPatcher/AssemblyVersionPatcher.csproj -c Release
 ```
+
+### Verify CustomFanCurve
+
+```bash
+dotnet run --project tests/CustomFanCurve.Tests/CustomFanCurve.Tests.csproj -c Release
+```
+
+These Windows checks cover copy independence, full and legacy backups, automatic recovery, defaults, invalid imports, stale edits and loading the configuration window. They do not start sensors or write to fan hardware.
 
 ### Publish a Plugin for Deployment
 ```bash

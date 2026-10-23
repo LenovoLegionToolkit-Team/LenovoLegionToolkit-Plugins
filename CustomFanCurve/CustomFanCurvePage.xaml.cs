@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
@@ -72,6 +73,19 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             {
                 Owner = Window.GetWindow(this),
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            window.ShowDialog();
+        }
+
+        private void Configuration_Click(object sender, RoutedEventArgs e)
+        {
+            if (_configManager == null || _viewModel == null || Runtime.Provider is not CustomFanCurveProvider provider) return;
+            var fans = _viewModel.FanViewModels.ToArray();
+            var selectedFanId = _viewModel.SelectedFanViewModel?.FanId ?? 1;
+            var window = new ConfigurationWindow(_configManager, fans, selectedFanId,
+                () => _viewModel.LoadFans(provider.AvailableFanIds))
+            {
+                Owner = Window.GetWindow(this)
             };
             window.ShowDialog();
         }

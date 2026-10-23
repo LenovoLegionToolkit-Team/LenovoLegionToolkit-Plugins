@@ -300,22 +300,41 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private async void OnSensorUpdated(HardwareSensorSnapshot snapshot)
         {
-            if (_uiOpenCount > 0 && !_isEnabled && !_isFullSpeed)
-                await UpdateMonitoringOnlyAsync(snapshot);
-
-            if (_isEnabled || _isFullSpeed)
+            if (_disposed || Interlocked.Exchange(ref _isProcessing, 1) != 0) return;
+            try
             {
-                if (Interlocked.Exchange(ref _isProcessing, 1) == 0)
+                if (_uiOpenCount > 0 && !_isEnabled && !_isFullSpeed)
+                    await UpdateMonitoringOnlyAsync(snapshot);
+                if (_isEnabled || _isFullSpeed)
+                    await Task.Run(() => ProcessAsync(snapshot));
+            }
+            catch (Exception ex)
+            {
+                // Unhandled async-void failures terminate Toolkit itself.
+                Logger.Error("Sensor processing failed; returning fan control to firmware", ex);
+                _isEnabled = false;
+                _isFullSpeed = false;
+                try
                 {
-                    try
-                    {
-                        await Task.Run(() => ProcessAsync(snapshot));
-                    }
-                    finally
-                    {
-                        Interlocked.Exchange(ref _isProcessing, 0);
-                    }
+                    StopSensorsIfNeeded();
+                    await _hardware.RestoreAutoAsync();
                 }
+                catch (Exception recoveryError)
+                {
+                    Logger.Error("Could not restore automatic fan control", recoveryError);
+                }
+                try
+                {
+                    _configManager.DisableFanControl();
+                }
+                catch (Exception saveError)
+                {
+                    Logger.Error("Could not save disabled fan control state", saveError);
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isProcessing, 0);
             }
         }
 

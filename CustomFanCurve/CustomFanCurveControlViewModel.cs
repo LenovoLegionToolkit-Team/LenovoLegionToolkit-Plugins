@@ -121,6 +121,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             catch (TaskCanceledException) 
             { 
             }
+            catch (Exception ex)
+            {
+                Logger.Error("Could not save fan curve", ex);
+            }
         }
 
         public string DisplayName { get; }
@@ -301,6 +305,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public void Detach()
         {
+            _saveCts?.Cancel();
+            _saveCts?.Dispose();
+            _saveCts = null;
             _monitoring.MonitoringUpdated -= OnMonitoringUpdated;
             CurveNodes.CollectionChanged -= OnCurveNodesCollectionChanged;
             foreach (var node in CurveNodes)

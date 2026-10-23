@@ -1,0 +1,154 @@
+<wpfui:UiWindow x:Class="LenovoLegionToolkit.Plugin.CustomFanCurve.ConfigurationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:res="clr-namespace:LenovoLegionToolkit.Plugin.CustomFanCurve.Resources"
+        Title="{x:Static res:Resource.ConfigurationTitle}"
+        Width="720" Height="580" MinWidth="650" MinHeight="480"
+        ResizeMode="CanResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        ExtendsContentIntoTitleBar="True" Background="{DynamicResource ApplicationBackgroundBrush}">
+    <wpfui:UiWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Pages/SettingsPageResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </wpfui:UiWindow.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <wpfui:TitleBar Grid.Row="0" Title="{x:Static res:Resource.ConfigurationTitle}"
+                       CanMaximize="False" ShowMaximize="False" ShowMinimize="False" UseSnapLayout="False"/>
+        <TabControl Grid.Row="1" Margin="16"
+                    ItemContainerStyle="{DynamicResource SidebarTabItemStyle}"
+                    Style="{DynamicResource SidebarTabControlStyle}">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="4,0">
+                        <wpfui:SymbolIcon Symbol="Copy24" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{x:Static res:Resource.ConfigurationCopyTab}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <wpfui:DynamicScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Resource.CopyFanTitle}"/>
+                        <TextBlock Text="{x:Static res:Resource.CopyFanDescription}" FontSize="11" Margin="0,0,0,16"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        <wpfui:CardControl Padding="16,12" Margin="0,0,0,8">
+                            <wpfui:CardControl.Header>
+                                <TextBlock Text="{x:Static res:Resource.CopyFrom}" FontSize="13" Margin="0,0,16,0"/>
+                            </wpfui:CardControl.Header>
+                            <ComboBox x:Name="SourceFan" DisplayMemberPath="DisplayName" MinWidth="150"
+                                      SelectionChanged="SourceFan_SelectionChanged"/>
+                        </wpfui:CardControl>
+                        <wpfui:Card Padding="16,12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="{x:Static res:Resource.CopyTo}" FontSize="13" Margin="0,0,0,8"/>
+                                <ItemsControl x:Name="TargetFans">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" Margin="0,4" FontSize="13"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </wpfui:Card>
+                        <wpfui:Button Appearance="Primary" Icon="Copy24" Content="{x:Static res:Resource.CopyFanButton}"
+                                      Click="Copy_Click" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </wpfui:DynamicScrollViewer>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="4,0">
+                        <wpfui:SymbolIcon Symbol="Save24" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{x:Static res:Resource.ConfigurationBackupTab}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <wpfui:DynamicScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Resource.ConfigurationBackupTab}"/>
+                        <wpfui:CardControl Padding="16,12" Margin="0,0,0,8">
+                            <wpfui:CardControl.Header>
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationExportTitle}" FontSize="13"/>
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationExportDescription}" FontSize="11" Margin="0,2,0,0"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </wpfui:CardControl.Header>
+                            <wpfui:Button Appearance="Secondary" Icon="Save24" Content="{x:Static res:Resource.ConfigurationExportAction}" Click="Export_Click"/>
+                        </wpfui:CardControl>
+                        <wpfui:CardControl Padding="16,12" Margin="0,0,0,8">
+                            <wpfui:CardControl.Header>
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationRestoreTitle}" FontSize="13"/>
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationImportDescription}" FontSize="11" Margin="0,2,0,0"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </wpfui:CardControl.Header>
+                            <wpfui:Button Appearance="Secondary" Icon="ArrowSync24" Content="{x:Static res:Resource.ConfigurationRestoreAction}" Click="Import_Click"/>
+                        </wpfui:CardControl>
+                        <wpfui:CardControl Padding="16,12" Margin="0,0,0,8">
+                            <wpfui:CardControl.Header>
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationRecoveryTitle}" FontSize="13"/>
+                                    <TextBlock Text="{x:Static res:Resource.ConfigurationRecoveryDescription}" FontSize="11" Margin="0,2,0,0"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </wpfui:CardControl.Header>
+                            <wpfui:Button Appearance="Secondary" Icon="ArrowSync24" Content="{x:Static res:Resource.ConfigurationRestoreAction}" Click="OpenBackups_Click"/>
+                        </wpfui:CardControl>
+                    </StackPanel>
+                </wpfui:DynamicScrollViewer>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Margin="4,0">
+                        <wpfui:SymbolIcon Symbol="ArrowSync24" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{x:Static res:Resource.ConfigurationDefaultsTab}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <wpfui:DynamicScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Resource.ConfigurationDefaultsTab}"/>
+                        <wpfui:CardControl Padding="16,12" Margin="0,0,0,8">
+                            <wpfui:CardControl.Header>
+                                <TextBlock Text="{x:Static res:Resource.ConfigurationSelectedFan}" FontSize="13" Margin="0,0,16,0"/>
+                            </wpfui:CardControl.Header>
+                            <ComboBox DisplayMemberPath="DisplayName" MinWidth="150"
+                                      ItemsSource="{Binding ItemsSource, ElementName=SourceFan}"
+                                      SelectedItem="{Binding SelectedItem, ElementName=SourceFan, Mode=TwoWay}"/>
+                        </wpfui:CardControl>
+                        <wpfui:CardAction Padding="16,12" Margin="0,0,0,8" Click="ResetFan_Click">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="{x:Static res:Resource.ResetSelectedFan}" FontSize="13"/>
+                                <TextBlock Text="{x:Static res:Resource.ConfigurationResetFanDescription}" FontSize="11" Margin="0,2,0,0"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </wpfui:CardAction>
+                        <wpfui:CardAction Padding="16,12" Margin="0,0,0,8" Click="ResetAll_Click">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="{x:Static res:Resource.ResetAllSettings}" FontSize="13"/>
+                                <TextBlock Text="{x:Static res:Resource.ConfigurationResetAllDescription}" FontSize="11" Margin="0,2,0,0"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </wpfui:CardAction>
+                    </StackPanel>
+                </wpfui:DynamicScrollViewer>
+            </TabItem>
+        </TabControl>
+        <Border Grid.Row="2" Padding="24,16" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="Status" Text="{x:Static res:Resource.ConfigurationHint}" VerticalAlignment="Center" FontSize="12" Margin="0,0,16,0" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" AutomationProperties.LiveSetting="Polite"/>
+                <wpfui:Button Grid.Column="1" Appearance="Secondary" MinWidth="120" Content="{x:Static res:Resource.ConfigurationClose}"
+                              Click="Close_Click" IsCancel="True"/>
+            </Grid>
+        </Border>
+    </Grid>
+</wpfui:UiWindow>

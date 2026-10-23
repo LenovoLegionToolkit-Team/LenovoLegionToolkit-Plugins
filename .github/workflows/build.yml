@@ -52,6 +52,9 @@ jobs:
       
     - name: Build All Plugins
       run: dotnet build LenovoLegionToolkit-Plugins.slnx -c Release --no-restore
+
+    - name: Verify CustomFanCurve configuration and WPF
+      run: dotnet run --project tests/CustomFanCurve.Tests/CustomFanCurve.Tests.csproj -c Release
       
     - name: Package Plugins
       run: |

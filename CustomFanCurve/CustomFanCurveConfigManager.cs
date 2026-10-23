@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LenovoLegionToolkit.Plugin.CustomFanCurve
@@ -11,9 +10,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly PluginSettings _store;
         private CustomFanCurveSettings _settings;
         private readonly object _lock = new();
-        private readonly SemaphoreSlim _asyncLock = new(1, 1);
 
         public CustomFanCurveSettings Settings => _settings;
+        public string RecoveryDirectory => _store.RecoveryDirectory;
         public event Action? SettingsChanged;
 
         public CustomFanCurveConfigManager(PluginSettings store)
@@ -87,30 +86,92 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
-        public async Task SaveEntryAsync(CustomFanCurveEntry entry)
+        public Task SaveEntryAsync(CustomFanCurveEntry entry)
         {
-            await _asyncLock.WaitAsync();
-            try
+            // A pending edit must not resurrect data replaced by restore or copy.
+            lock (_lock)
             {
-                lock (_lock)
-                {
-                    var existing = _settings.Entries.FirstOrDefault(e => e.FanId == entry.FanId);
-                    if (existing != null) _settings.Entries.Remove(existing);
-                    _settings.Entries.Add(entry);
-                }
-                Logger.Debug($"Saved fan curve entry async for FanId {entry.FanId}: [{string.Join(", ", entry.CurveNodes.Select(n => $"{n.Temperature}C:{n.TargetPercent}%"))}]");
-                await _store.SaveAsync(_settings);
-                SettingsChanged?.Invoke();
+                if (_settings.Entries.Any(e => ReferenceEquals(e, entry)))
+                    SaveEntry(entry);
             }
-            finally
-            {
-                _asyncLock.Release();
-            }
+            return Task.CompletedTask;
         }
 
         public List<CustomFanCurveEntry> GetAllEntries()
         {
             lock (_lock) { return _settings.Entries.ToList(); }
+        }
+
+        public string ExportBackup()
+        {
+            lock (_lock) { return ConfigurationBackup.Export(_settings); }
+        }
+
+        public void CopyFan(int sourceFanId, IReadOnlyList<int> targetFanIds)
+        {
+            lock (_lock)
+            {
+                var source = GetEntry(sourceFanId) ?? throw new ArgumentException("Source fan not found.");
+                var targets = targetFanIds.Distinct().Where(id => id != sourceFanId).ToArray();
+                if (targets.Any(id => GetEntry(id) == null))
+                    throw new ArgumentException("Target fan not found.");
+                var replacement = ConfigurationBackup.Clone(_settings);
+                foreach (var id in targets)
+                {
+                    replacement.Entries.RemoveAll(e => e.FanId == id);
+                    replacement.Entries.Add(ConfigurationBackup.CopyEntry(source, id));
+                }
+                _store.SaveRecoveryBackup(_settings);
+                _store.Save(replacement);
+                _settings = replacement;
+            }
+            SettingsChanged?.Invoke();
+        }
+
+        public void Restore(CustomFanCurveSettings settings, IReadOnlyList<int> availableFanIds)
+        {
+            ConfigurationBackup.Validate(settings);
+            lock (_lock)
+            {
+                var replacement = ConfigurationBackup.Clone(settings);
+                // Calibration belongs to this machine, not to the machine that created the backup.
+                replacement.FanMaxRpms = new(_settings.FanMaxRpms);
+                replacement.FallbackProbeDone = _settings.FallbackProbeDone;
+                replacement.Entries.RemoveAll(e => !availableFanIds.Contains(e.FanId));
+                foreach (var id in availableFanIds)
+                    if (!replacement.Entries.Any(e => e.FanId == id))
+                        replacement.Entries.Add(new CustomFanCurveEntry { FanId = id });
+                _store.SaveRecoveryBackup(_settings);
+                _store.Save(replacement);
+                _settings = replacement;
+            }
+            SettingsChanged?.Invoke();
+        }
+
+        public void ResetFan(int fanId)
+        {
+            lock (_lock)
+            {
+                if (GetEntry(fanId) == null) throw new ArgumentException("Fan not found.");
+                var replacement = ConfigurationBackup.Clone(_settings);
+                replacement.Entries.RemoveAll(e => e.FanId == fanId);
+                replacement.Entries.Add(new CustomFanCurveEntry { FanId = fanId });
+                _store.SaveRecoveryBackup(_settings);
+                _store.Save(replacement);
+                _settings = replacement;
+            }
+            SettingsChanged?.Invoke();
+        }
+
+        public void DisableFanControl()
+        {
+            lock (_lock)
+            {
+                _settings.IsCustomFanEnabled = false;
+                _settings.IsFullSpeed = false;
+                _store.Save(_settings);
+            }
+            SettingsChanged?.Invoke();
         }
     }
 }
