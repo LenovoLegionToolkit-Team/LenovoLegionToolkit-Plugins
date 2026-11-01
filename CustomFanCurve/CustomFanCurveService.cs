@@ -602,7 +602,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
             // Smart Auto's ramp gate tracks spike/hold timers, so it must observe every sensor cycle.
-            if (settings.IsSmartAutoEnabled)
+            bool useSpikeFilter = settings.IsSmartAutoEnabled && settings.SmartSpikeFilterEnabled;
+            if (useSpikeFilter)
                 needRecalc = true;
             else
                 _smartRampGate.Reset(fanId);
@@ -640,7 +641,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
-                if (settings.IsSmartAutoEnabled)
+                if (useSpikeFilter)
                 {
                     bool isEmergency = safetyEvalTemp >= Math.Min(90, settings.SafeMaxTemp);
                     idealRpm = _smartRampGate.Apply(fanId, idealRpm, currentRpm, _hardware.GetMinRpm(fanId), safetyEvalTemp, isEmergency, now, settings);
@@ -650,7 +651,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int lastCalcRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
                 targetRpm = idealRpm;
 
-                if (!settings.IsSmartAutoEnabled && settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
+                if (!useSpikeFilter && settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
                 {
                     double rawDt = (now - lastTick) / (double)TimeSpan.TicksPerSecond;
                     double dtSeconds = Math.Min(rawDt, 2.0);
@@ -660,7 +661,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
 
                 int minRpm = _hardware.GetMinRpm(fanId);
-                if (settings.IsSmartAutoEnabled)
+                if (settings.IsSmartAutoEnabled && settings.SmartHoldMinimumAtIdle)
                 {
                     // Writing 0 hands the fan back to the BIOS, so Smart Auto holds the quietest speed it controls instead.
                     targetRpm = Math.Max(targetRpm, minRpm);

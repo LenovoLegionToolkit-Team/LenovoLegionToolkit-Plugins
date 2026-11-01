@@ -24,6 +24,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _sensorIntervalMs = s.SensorIntervalMs;
             _calculationDelayMs = s.CalculationDelayMs;
             _isSmartAutoEnabled = s.IsSmartAutoEnabled;
+            _smartSpikeFilterEnabled = s.SmartSpikeFilterEnabled;
+            _smartHoldMinimumAtIdle = s.SmartHoldMinimumAtIdle;
             _syncFanLevel = s.SyncFanLevel;
             _powerDeltaThreshold = s.PowerDeltaThreshold;
             _temperatureDeltaThreshold = s.TemperatureDeltaThreshold;
@@ -81,6 +83,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.SensorIntervalMs), _sensorIntervalMs);
             Save(nameof(CustomFanCurveSettings.CalculationDelayMs), _calculationDelayMs);
             Save(nameof(CustomFanCurveSettings.IsSmartAutoEnabled), _isSmartAutoEnabled);
+            Save(nameof(CustomFanCurveSettings.SmartSpikeFilterEnabled), _smartSpikeFilterEnabled);
+            Save(nameof(CustomFanCurveSettings.SmartHoldMinimumAtIdle), _smartHoldMinimumAtIdle);
             Save(nameof(CustomFanCurveSettings.SyncFanLevel), _syncFanLevel);
             Save(nameof(CustomFanCurveSettings.PowerDeltaThreshold), _powerDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.TemperatureDeltaThreshold), _temperatureDeltaThreshold);
@@ -209,13 +213,59 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     _isSmartAutoEnabled = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsCurveOnlySettingsEnabled));
+                    OnSmartAutoModeChanged();
                 }
             }
         }
 
-        // Settings that only affect manual curve mode; Smart Auto ignores them, so the UI greys them out.
+        private bool _smartSpikeFilterEnabled;
+        public bool SmartSpikeFilterEnabled
+        {
+            get => _smartSpikeFilterEnabled;
+            set
+            {
+                if (_smartSpikeFilterEnabled != value)
+                {
+                    _smartSpikeFilterEnabled = value;
+                    OnPropertyChanged();
+                    OnSmartAutoModeChanged();
+                }
+            }
+        }
+
+        private bool _smartHoldMinimumAtIdle;
+        public bool SmartHoldMinimumAtIdle
+        {
+            get => _smartHoldMinimumAtIdle;
+            set
+            {
+                if (_smartHoldMinimumAtIdle != value)
+                {
+                    _smartHoldMinimumAtIdle = value;
+                    OnPropertyChanged();
+                    OnSmartAutoModeChanged();
+                }
+            }
+        }
+
+        // Settings that Smart Auto ignores are greyed out in the UI, with a note explaining why.
+        // Hysteresis only exists in curve mode.
         public bool IsCurveOnlySettingsEnabled => !_isSmartAutoEnabled;
+        // The spike filter replaces calculation throttling and step-down gliding.
+        public bool IsCalcSchedulingIgnored => _isSmartAutoEnabled && _smartSpikeFilterEnabled;
+        public bool IsCalcSchedulingEnabled => !IsCalcSchedulingIgnored;
+        // Spin-up boost only fires from 0 RPM, which Smart Auto never writes while holding the minimum.
+        public bool IsSpinUpIgnored => _isSmartAutoEnabled && _smartHoldMinimumAtIdle;
+        public bool IsSpinUpEnabled => !IsSpinUpIgnored;
+
+        private void OnSmartAutoModeChanged()
+        {
+            OnPropertyChanged(nameof(IsCurveOnlySettingsEnabled));
+            OnPropertyChanged(nameof(IsCalcSchedulingIgnored));
+            OnPropertyChanged(nameof(IsCalcSchedulingEnabled));
+            OnPropertyChanged(nameof(IsSpinUpIgnored));
+            OnPropertyChanged(nameof(IsSpinUpEnabled));
+        }
 
         private bool _syncFanLevel;
         public bool SyncFanLevel
@@ -635,6 +685,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             SensorIntervalMs = defaultSettings.SensorIntervalMs;
             CalculationDelayMs = defaultSettings.CalculationDelayMs;
             IsSmartAutoEnabled = defaultSettings.IsSmartAutoEnabled;
+            SmartSpikeFilterEnabled = defaultSettings.SmartSpikeFilterEnabled;
+            SmartHoldMinimumAtIdle = defaultSettings.SmartHoldMinimumAtIdle;
             SyncFanLevel = defaultSettings.SyncFanLevel;
             PowerDeltaThreshold = defaultSettings.PowerDeltaThreshold;
             TemperatureDeltaThreshold = defaultSettings.TemperatureDeltaThreshold;

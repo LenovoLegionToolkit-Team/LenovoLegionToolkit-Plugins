@@ -1078,6 +1078,60 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Not used while Smart Auto holds the minimum speed at idle..
+        /// </summary>
+        public static string SmartAutoNotUsedHoldMinimum {
+            get {
+                return ResourceManager.GetString("SmartAutoNotUsedHoldMinimum", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Not used while the Smart Auto spike filter is on..
+        /// </summary>
+        public static string SmartAutoNotUsedSpikeFilter {
+            get {
+                return ResourceManager.GetString("SmartAutoNotUsedSpikeFilter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hold Minimum Speed at Idle.
+        /// </summary>
+        public static string SmartHoldMinimumAtIdle {
+            get {
+                return ResourceManager.GetString("SmartHoldMinimumAtIdle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to When the target is below the fan minimum, keep the fan at its minimum instead of handing control back to the BIOS..
+        /// </summary>
+        public static string SmartHoldMinimumAtIdleDesc {
+            get {
+                return ResourceManager.GetString("SmartHoldMinimumAtIdleDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Spike Filter.
+        /// </summary>
+        public static string SmartSpikeFilter {
+            get {
+                return ResourceManager.GetString("SmartSpikeFilter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ignores short load spikes..
+        /// </summary>
+        public static string SmartSpikeFilterDesc {
+            get {
+                return ResourceManager.GetString("SmartSpikeFilterDesc", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Power Load:.
         /// </summary>
         public static string SmartAutoPowerLoad {
