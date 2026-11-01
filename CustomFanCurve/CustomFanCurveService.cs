@@ -647,7 +647,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
 
                 int minRpm = _hardware.GetMinRpm(fanId);
-                if (targetRpm > 0 && targetRpm < minRpm)
+                if (settings.IsSmartAutoEnabled)
+                {
+                    // Writing 0 hands the fan back to the BIOS, so Smart Auto holds the quietest speed it controls instead.
+                    targetRpm = Math.Max(targetRpm, minRpm);
+                }
+                else if (targetRpm > 0 && targetRpm < minRpm)
                 {
                     targetRpm = 0;
                 }
