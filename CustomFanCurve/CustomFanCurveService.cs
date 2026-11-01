@@ -47,6 +47,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ConcurrentDictionary<int, double> _emaTemp = new();
         private readonly ConcurrentDictionary<int, int> _lastIdealRpm = new();
         private readonly ConcurrentDictionary<int, long> _lastWriteTick = new();
+        private readonly SmartRampGate _smartRampGate = new();
 
         private readonly ConcurrentDictionary<int, float> _lastRawTemp = new();
         private readonly ConcurrentDictionary<int, long> _lastRawTempTick = new();
@@ -512,6 +513,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
 
             _lastAppliedRpm[fanId] = max;
+            _smartRampGate.Reset(fanId);
             TryUpdateMonitoring(fanId, temp, max, max, true);
         }
 
@@ -599,6 +601,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
             if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
+            // Smart Auto's ramp gate tracks spike/hold timers, so it must observe every sensor cycle.
+            if (settings.IsSmartAutoEnabled)
+                needRecalc = true;
+            else
+                _smartRampGate.Reset(fanId);
 
             int targetRpm;
             if (needRecalc)
@@ -633,11 +640,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
+                if (settings.IsSmartAutoEnabled)
+                {
+                    bool isEmergency = safetyEvalTemp >= Math.Min(90, settings.SafeMaxTemp);
+                    idealRpm = _smartRampGate.Apply(fanId, idealRpm, currentRpm, _hardware.GetMinRpm(fanId), safetyEvalTemp, isEmergency, now, settings);
+                }
+
                 // Asymmetric Step-Down: Smooths fan deceleration to prevent bearing wear and audible chopping.
                 int lastCalcRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
                 targetRpm = idealRpm;
 
-                if (settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
+                if (!settings.IsSmartAutoEnabled && settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
                 {
                     double rawDt = (now - lastTick) / (double)TimeSpan.TicksPerSecond;
                     double dtSeconds = Math.Min(rawDt, 2.0);
@@ -856,6 +869,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     _lastCalcRpm.Clear();
                     _lastCalcTick.Clear();
                     _lastFingerprint.Clear();
+                    _smartRampGate.Clear();
                 }
             }
             finally
