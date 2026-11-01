@@ -21,6 +21,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public bool FallbackProbeDone { get; set; }
         public bool AlwaysWriteRpm { get; set; } = true;
         public bool ForceWriteWhenRpmZero { get; set; } = true;
+        public bool WriteRpmInHundreds { get; set; } = false;
         public int MinimumRpmChangeToApply { get; set; } = 50;
         public bool EnableMinimumRpmChangeToApply { get; set; } = true;
 
