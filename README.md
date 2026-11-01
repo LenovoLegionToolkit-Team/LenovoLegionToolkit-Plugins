@@ -14,6 +14,11 @@ Provides advanced, algorithm-driven control over the cooling system on supported
 - **Thermal Smoothing & Hysteresis:** Exponential Moving Average (EMA) and deadzone buffers to prevent rapid fan cycling and jitter.
 - **Thermal Safety Net:** Emergency override protection that automatically ramps up fans if temperatures approach critical thresholds, regardless of the active curve settings.
 - **Smart Auto Mode:** Fuzzy-logic powered auto control that smoothly scales fans using continuous thermal and power load gradients.
+  - **Spike Filter:** Ignores short load spikes. A demand increase must last a few seconds (shorter as temperatures rise) before fans ramp up gradually, and drops hold briefly before gliding down. Repeated ramp-ups, as in gaming, switch to longer holds and gentler ramps. Emergency temperatures bypass the filter.
+  - **Configurable Power Range:** Idle and full-load watts can be set separately for CPU and GPU, so high-power hardware doesn't count every load as full load.
+  - **Stays in Control at Idle:** Targets below the fan minimum hold the minimum instead of handing the fan back to the BIOS.
+  - Settings that Smart Auto ignores are greyed out while it is on.
+- **Firmware RPM Units:** Optional `WriteRpmInHundreds` setting for firmware that reads the requested fan speed as one byte in hundreds of RPM (e.g. 18 = 1,800 RPM).
 - **Asymmetric Step-Down:** Smooth fan deceleration curves to mitigate audible chopping and prevent physical bearing wear.
 - **Spin-Up Boost:** Applies a brief, high-RPM burst when starting a fan from 0 RPM to reliably overcome physical bearing static friction.
 - **Fan Speed Synchronization:** Automatically scales all fans to match the highest relative speed percentage demanded by the system, balancing airflow.
