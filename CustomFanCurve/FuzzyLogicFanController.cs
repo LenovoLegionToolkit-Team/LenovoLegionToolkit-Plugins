@@ -11,33 +11,49 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private const int OutputAggressive = 70;
         private const int OutputMax = 100;
 
-        public static int CalculateSmartRpm(HardwareSensorSnapshot snapshot, float evalTemp, int maxRpm, int currentTargetRpm, int fanIndex)
+        // Machine Power Scaling: Maps a power reading onto 0..1 load between the configured idle and full-load watts.
+        private static float GetPowerLoad(float power, int idleW, int fullW)
+        {
+            if (power < 0) return -1f;
+            float range = Math.Max(1, fullW - idleW);
+            return Math.Clamp((power - idleW) / range, 0f, 1f);
+        }
+
+        private static float GetCpuLoad(HardwareSensorSnapshot snapshot, CustomFanCurveSettings settings) =>
+            GetPowerLoad(snapshot[SensorItem.CpuPower], settings.SmartCpuIdlePowerW, settings.SmartCpuFullPowerW);
+
+        private static float GetGpuLoad(HardwareSensorSnapshot snapshot, CustomFanCurveSettings settings) =>
+            GetPowerLoad(snapshot[SensorItem.GpuPower], settings.SmartGpuIdlePowerW, settings.SmartGpuFullPowerW);
+
+        public static int CalculateSmartRpm(HardwareSensorSnapshot snapshot, float evalTemp, int maxRpm, int currentTargetRpm, int fanIndex, CustomFanCurveSettings settings)
         {
             if (evalTemp >= 90) return maxRpm;
 
             float temp = evalTemp;
-            float power = snapshot[SensorItem.CpuPower];
+            float cpuLoad = GetCpuLoad(snapshot, settings);
+            float gpuLoad = GetGpuLoad(snapshot, settings);
+            float powerLoad = cpuLoad;
 
             if (fanIndex == 1)
             {
-                power = snapshot[SensorItem.GpuPower] > 0 ? snapshot[SensorItem.GpuPower] : snapshot[SensorItem.CpuPower];
+                powerLoad = snapshot[SensorItem.GpuPower] > 0 ? gpuLoad : cpuLoad;
             }
             else if (fanIndex > 1)
             {
-                power = Math.Max(snapshot[SensorItem.CpuPower], snapshot[SensorItem.GpuPower]);
+                powerLoad = Math.Max(cpuLoad, gpuLoad);
             }
 
             float targetPercent = 0f;
 
             float loadFactor;
-            if (power < 0)
+            if (powerLoad < 0)
             {
                 float usage = fanIndex == 1 ? snapshot[SensorItem.GpuUtilization] : (fanIndex == 0 ? snapshot[SensorItem.CpuUtilization] : Math.Max(snapshot[SensorItem.CpuUtilization], snapshot[SensorItem.GpuUtilization]));
                 loadFactor = Math.Clamp((usage - 20f) / (70f - 20f), 0f, 1f);
             }
             else
             {
-                loadFactor = Math.Clamp((power - 20f) / (65f - 20f), 0f, 1f);
+                loadFactor = powerLoad;
             }
 
             float thermalPercent = Math.Clamp((temp - 50f) / (85f - 50f) * (OutputMax - OutputSlightRamp), 0f, OutputMax - OutputSlightRamp);
@@ -59,7 +75,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             return (int)(maxRpm * (Math.Clamp(targetPercent, 0f, OutputMax) / OutputMax));
         }
 
-        public static (string ThermalState, string PowerLoad, string Decision) GetGlobalTelemetryStrings(HardwareSensorSnapshot snapshot)
+        public static (string ThermalState, string PowerLoad, string Decision) GetGlobalTelemetryStrings(HardwareSensorSnapshot snapshot, CustomFanCurveSettings settings)
         {
             float maxTemp = Math.Max(snapshot[SensorItem.CpuTemperature], snapshot[SensorItem.GpuCoreTemperature]);
             float maxPower = Math.Max(snapshot[SensorItem.CpuPower], snapshot[SensorItem.GpuPower]);
@@ -84,7 +100,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             else
             {
-                powerLoad = maxPower >= 65 ? "Heavy Load" : maxPower >= 40 ? "Light Load" : "Idle";
+                // Same scale as CalculateSmartRpm; with the default 20-65 W range these are the original 40 W / 65 W thresholds.
+                float load = Math.Max(GetCpuLoad(snapshot, settings), GetGpuLoad(snapshot, settings));
+                powerLoad = load >= 1f ? "Heavy Load" : load >= 20f / 45f ? "Light Load" : "Idle";
                 loadString = $"{maxPower:F0}W";
             }
 

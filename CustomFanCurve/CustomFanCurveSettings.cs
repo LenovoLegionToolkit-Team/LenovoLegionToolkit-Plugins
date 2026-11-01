@@ -67,6 +67,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public double SmartSustainedHoldSeconds { get; set; } = 15.0;
         public int SmartSustainedRampDownRpmPerSec { get; set; } = 50;
         public int SmartSustainedRampUpRpmPerSec { get; set; } = 400;
+        public int SmartCpuIdlePowerW { get; set; } = 20;
+        public int SmartCpuFullPowerW { get; set; } = 65;
+        public int SmartGpuIdlePowerW { get; set; } = 20;
+        public int SmartGpuFullPowerW { get; set; } = 65;
         public bool SyncFanLevel { get; set; } = false;
         public bool EnablePredictiveEngine { get; set; } = false;
         public bool EnableHysteresis { get; set; } = false;

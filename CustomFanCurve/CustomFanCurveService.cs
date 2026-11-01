@@ -473,7 +473,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             if (_configManager.Settings.IsSmartAutoEnabled && !_isFullSpeed)
             {
-                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot);
+                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot, _configManager.Settings);
                 var outputStr = string.Join(" | ", results.OrderBy(kv => kv.Key).Select(kv => 
                 {
                     string fanName = kv.Key switch { 2 => "GPU Fan", 4 => "PCH Fan", 1 => "CPU Fan", _ => $"Fan {kv.Key}" };
@@ -617,7 +617,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     var availIds = _hardware.AvailableFanIds;
                     int fanIndex = 0;
                     for (int fi = 0; fi < availIds.Count; fi++) { if (availIds[fi] == fanId) { fanIndex = fi; break; } }
-                    idealRpm = FuzzyLogicFanController.CalculateSmartRpm(snapshot, evalTemp, _hardware.GetMaxRpm(fanId), cachedRpm, fanIndex);
+                    idealRpm = FuzzyLogicFanController.CalculateSmartRpm(snapshot, evalTemp, _hardware.GetMaxRpm(fanId), cachedRpm, fanIndex, settings);
                 }
                 else
                 {
@@ -813,7 +813,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             if (_configManager.Settings.IsSmartAutoEnabled)
             {
-                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot);
+                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot, _configManager.Settings);
                 var decision = _hardware.IsSupported 
                     ? Resources.Resource.SmartAutoInactiveRequiresCustom 
                     : Resources.Resource.SmartAutoHardwareNotSupported;
