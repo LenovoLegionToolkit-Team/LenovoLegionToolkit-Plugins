@@ -39,7 +39,9 @@
                                     </wpfui:CardControl>
                                 
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.CalcScheduling}"/>
-                            
+                            <TextBlock Style="{StaticResource SmartAutoNotUsedNote}"/>
+
+                                <StackPanel IsEnabled="{Binding IsCurveOnlySettingsEnabled}">
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">
@@ -89,7 +91,8 @@
                                         </wpfui:CardControl.Header>
                                         <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding PowerDeltaThreshold, UpdateSourceTrigger=PropertyChanged}"/>
                                     </wpfui:CardControl>
-                                
+                                </StackPanel>
+
         </StackPanel>
     </wpfui:DynamicScrollViewer>
 </UserControl>

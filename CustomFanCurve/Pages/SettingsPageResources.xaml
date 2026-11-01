@@ -1,7 +1,18 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:res="clr-namespace:LenovoLegionToolkit.Plugin.CustomFanCurve.Resources">
 
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+    <!-- Shown above settings groups that Smart Auto ignores; the groups themselves bind IsEnabled to IsCurveOnlySettingsEnabled. -->
+    <Style x:Key="SmartAutoNotUsedNote" TargetType="TextBlock">
+        <Setter Property="Text" Value="{x:Static res:Resource.SmartAutoNotUsed}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="Visibility" Value="{Binding IsSmartAutoEnabled, Converter={StaticResource BoolToVis}}" />
+    </Style>
 
     <Style x:Key="SectionHeader" TargetType="TextBlock">
         <Setter Property="FontSize" Value="15" />

@@ -453,6 +453,9 @@
   <data name="SmartAutoInactiveRequiresCustom" xml:space="preserve">
     <value>Inactive (requires Custom Mode or "Apply to All Power Modes" to be enabled).</value>
   </data>
+  <data name="SmartAutoNotUsed" xml:space="preserve">
+    <value>Not used while Smart Auto is on.</value>
+  </data>
   <data name="SmartAutoPowerLoad" xml:space="preserve">
     <value>Power Load:</value>
   </data>

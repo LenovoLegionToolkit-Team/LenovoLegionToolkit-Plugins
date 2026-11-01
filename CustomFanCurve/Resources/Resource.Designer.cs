@@ -1069,6 +1069,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not used while Smart Auto is on..
+        /// </summary>
+        public static string SmartAutoNotUsed {
+            get {
+                return ResourceManager.GetString("SmartAutoNotUsed", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Power Load:.
         /// </summary>
         public static string SmartAutoPowerLoad {

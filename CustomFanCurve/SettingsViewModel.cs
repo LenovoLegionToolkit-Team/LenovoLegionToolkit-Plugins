@@ -209,9 +209,13 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     _isSmartAutoEnabled = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsCurveOnlySettingsEnabled));
                 }
             }
         }
+
+        // Settings that only affect manual curve mode; Smart Auto ignores them, so the UI greys them out.
+        public bool IsCurveOnlySettingsEnabled => !_isSmartAutoEnabled;
 
         private bool _syncFanLevel;
         public bool SyncFanLevel

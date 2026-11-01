@@ -453,6 +453,9 @@
   <data name="SmartAutoInactiveRequiresCustom" xml:space="preserve">
     <value>未激活 (需要自定义模式或应用至所有模式)</value>
   </data>
+  <data name="SmartAutoNotUsed" xml:space="preserve">
+    <value>智能自动控制开启时不使用。</value>
+  </data>
   <data name="SmartAutoPowerLoad" xml:space="preserve">
     <value>功耗负载：</value>
   </data>
