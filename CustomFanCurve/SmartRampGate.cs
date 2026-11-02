@@ -15,8 +15,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             public long FallSince;
             public bool IsRampingUp;
             public bool IsRampingDown;
-            public long LastRampStart;
-            public long PrevRampStart;
+            public double SustainedTemp = double.NaN;
         }
 
         // Demand changes smaller than this are treated as noise and never start a timer.
@@ -42,8 +41,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 _states[fanId] = s;
             }
 
-            double dtSeconds = Math.Clamp((now - s.LastTick) / (double)TimeSpan.TicksPerSecond, 0, MaxStepSeconds);
+            double elapsedSeconds = Math.Max(0, (now - s.LastTick) / (double)TimeSpan.TicksPerSecond);
+            double dtSeconds = Math.Min(elapsedSeconds, MaxStepSeconds);
             s.LastTick = now;
+
+            // Sustained Load: A slow moving average of the temperature. Games keep it high between peaks; short desktop tasks
+            // (app launches, update checks) only spike briefly, so it stays low and the fans wind down normally afterwards.
+            double averagingSeconds = Math.Max(1, settings.SmartSustainedWindowSeconds);
+            s.SustainedTemp = double.IsNaN(s.SustainedTemp)
+                ? temperature
+                : s.SustainedTemp + (temperature - s.SustainedTemp) * (1 - Math.Exp(-elapsedSeconds / averagingSeconds));
+            bool isSustained = s.SustainedTemp >= settings.SmartSustainedTemp;
 
             // Emergency: thermal safety must never wait for the spike filter.
             if (isEmergency && demandRpm > s.OutputRpm)
@@ -67,8 +75,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     if (now > s.RiseSince && now - s.RiseSince >= TimeSpan.FromSeconds(spikeIgnoreSeconds).Ticks)
                     {
                         s.IsRampingUp = true;
-                        s.PrevRampStart = s.LastRampStart;
-                        s.LastRampStart = now;
                         // A fan cannot spin below its minimum, so a ramp from standstill starts there.
                         if (s.OutputRpm < minRpm) s.OutputRpm = minRpm;
                     }
@@ -77,7 +83,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (s.IsRampingUp)
                 {
                     // Fast urgent ramps are for leaving a quiet state (e.g. a game starting); within a sustained load, rises stay gentle.
-                    if (IsSustained(s, now, settings)) rampUpRpmPerSec = Math.Min(rampUpRpmPerSec, Math.Max(settings.SmartSustainedRampUpRpmPerSec, settings.SmartRampUpRpmPerSec));
+                    if (isSustained) rampUpRpmPerSec = Math.Min(rampUpRpmPerSec, Math.Max(settings.SmartSustainedRampUpRpmPerSec, settings.SmartRampUpRpmPerSec));
                     s.OutputRpm = Math.Min(demandRpm, s.OutputRpm + rampUpRpmPerSec * dtSeconds);
                 }
             }
@@ -91,8 +97,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (demandRpm < s.OutputRpm - (s.IsRampingDown ? 0 : DeadbandRpm))
                 {
                     if (s.FallSince == 0) s.FallSince = now;
-                    // Sustained Load: Repeated ramp-ups (e.g. gaming) mean the load keeps returning, so hold longer and fall slowly between peaks.
-                    bool isSustained = IsSustained(s, now, settings);
+                    // Sustained Load: The load keeps returning (e.g. gaming), so hold longer and fall slowly between peaks.
                     double holdSeconds = isSustained ? Math.Max(settings.SmartSustainedHoldSeconds, settings.SmartDecreaseHoldSeconds) : settings.SmartDecreaseHoldSeconds;
                     int rampDownRpmPerSec = isSustained ? Math.Min(settings.SmartSustainedRampDownRpmPerSec, settings.SmartRampDownRpmPerSec) : settings.SmartRampDownRpmPerSec;
                     if (now - s.FallSince >= TimeSpan.FromSeconds(holdSeconds).Ticks)
@@ -110,9 +115,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             return (int)Math.Round(s.OutputRpm);
         }
-
-        private static bool IsSustained(FanState s, long now, CustomFanCurveSettings settings) =>
-            s.PrevRampStart > 0 && now - s.PrevRampStart <= TimeSpan.FromSeconds(settings.SmartSustainedWindowSeconds).Ticks;
 
         public void Reset(int fanId) => _states.TryRemove(fanId, out _);
 

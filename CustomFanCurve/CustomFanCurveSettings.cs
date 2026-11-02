@@ -65,7 +65,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int SmartUrgencyStartTemp { get; set; } = 70;
         public int SmartUrgencyFullTemp { get; set; } = 85;
         public int SmartUrgentRampUpRpmPerSec { get; set; } = 1000;
-        public double SmartSustainedWindowSeconds { get; set; } = 120.0;
+        public double SmartSustainedWindowSeconds { get; set; } = 30.0;
+        public int SmartSustainedTemp { get; set; } = 72;
         public double SmartSustainedHoldSeconds { get; set; } = 15.0;
         public int SmartSustainedRampDownRpmPerSec { get; set; } = 50;
         public int SmartSustainedRampUpRpmPerSec { get; set; } = 400;
