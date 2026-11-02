@@ -32,6 +32,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private bool _isEnabled;
         private bool _isFullSpeed;
         private bool _isMaxPerformanceMode;
+        private string? _currentModeName;
+        private const int ModeSwitchSettleMs = 5000;
+        private const int ModeSwitchMatchToleranceRpm = 200;
         private bool _powerModeFeatureBroken;
         private int _uiOpenCount;
         private int _isProcessing;
@@ -250,7 +253,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             await ReevaluateStateAsync();
         }
 
-        private async Task SetEnabledAsync(bool enable)
+        private async Task SetEnabledAsync(bool enable, bool restoreAuto = true)
         {
             if (_disposed) return;
             if (_isEnabled == enable) return;
@@ -265,7 +268,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             else
             {
-                if (!_isFullSpeed)
+                if (!_isFullSpeed && restoreAuto)
                     await RestoreAutoFanAsync();
                 if (_uiOpenCount <= 0)
                     StopSensorsIfNeeded();
@@ -844,14 +847,30 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             {
                 if (_disposed) return;
 
+                var previousMode = _currentModeName;
                 _isMaxPerformanceMode = await CheckIsMaxPerformanceModeAsync().ConfigureAwait(false);
+                bool modeSwitched = previousMode != null && _currentModeName != null && previousMode != _currentModeName;
 
                 var user = _configManager.Settings.IsCustomFanEnabled;
                 var shouldEnable = user && (_hardware.IsSupported &&
                     (_isMaxPerformanceMode || _configManager.Settings.ApplyToAllPowerModes));
                 if (shouldEnable != _isEnabled)
-                    Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} -> shouldEnable={shouldEnable}");
-                await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
+                    Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} mode={previousMode}->{_currentModeName} -> shouldEnable={shouldEnable}");
+
+                // Power Mode Switch: The firmware takes the fans back by itself a few seconds after switching modes. Writing the
+                // hand-back (0) while it is still switching can leave the fans stopped, so hand back only after it settles, if needed.
+                if (modeSwitched && _isEnabled && !shouldEnable && !_isFullSpeed)
+                {
+                    var appliedBeforeSwitch = new Dictionary<int, int>(_lastAppliedRpm);
+                    await SetEnabledAsync(false, restoreAuto: false).ConfigureAwait(false);
+                    _ = HandBackAfterModeSwitchAsync(appliedBeforeSwitch);
+                }
+                else
+                {
+                    if (modeSwitched && _isEnabled && shouldEnable)
+                        _ = ReassertAfterModeSwitchAsync();
+                    await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
+                }
 
                 var settings = _configManager.Settings;
                 if (settings.ForceRefreshOnModeSwitch && (shouldEnable || _isFullSpeed))
@@ -887,6 +906,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await _powerModeFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    _currentModeName = state.ToString();
                     var isMax = state == PowerModeState.GodMode;
                     Logger.Debug($"CheckMaxPerf: PowerModeFeature state={state} isMaxPerf={isMax}");
                     return isMax;
@@ -907,6 +927,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await itsFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    _currentModeName = state.ToString();
                     var isMax = state == ITSMode.MmcGeek;
                     if (isMax != _isMaxPerformanceMode)
                         Logger.Debug($"CheckMaxPerf: ITS state={state} isMaxPerf={isMax}");
@@ -917,6 +938,58 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             Logger.Debug("CheckMaxPerf: no power mode feature available, returning false");
             return false;
+        }
+
+        // Waits for the firmware to settle after a power mode switch, then hands the fans back only if they are still at the
+        // speeds the plugin last set (firmware that does not take them back by itself).
+        private async Task HandBackAfterModeSwitchAsync(Dictionary<int, int> appliedBeforeSwitch)
+        {
+            try
+            {
+                await Task.Delay(ModeSwitchSettleMs).ConfigureAwait(false);
+                if (_disposed || _isEnabled || _isFullSpeed) return;
+
+                bool stillPluginControlled = false;
+                foreach (var fanId in _hardware.AvailableFanIds)
+                {
+                    int rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+                    bool hadApplied = appliedBeforeSwitch.TryGetValue(fanId, out var applied);
+                    bool atPluginSpeed = hadApplied && applied > 0 && Math.Abs(rpm - applied) <= ModeSwitchMatchToleranceRpm;
+                    stillPluginControlled |= atPluginSpeed;
+                    Logger.Debug($"ModeSwitch: Fan{fanId} rpm={rpm} lastApplied={(hadApplied ? applied : -1)} atPluginSpeed={atPluginSpeed}");
+                }
+
+                if (stillPluginControlled)
+                {
+                    Logger.Debug("ModeSwitch: fans still at plugin speeds after settling, handing back to firmware");
+                    await RestoreAutoFanAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    Logger.Debug("ModeSwitch: firmware has taken over the fans, no hand-back needed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"ModeSwitch: deferred hand-back failed: {ex.Message}");
+            }
+        }
+
+        // After a power mode switch the firmware takes the fans back; once it has settled, forget the last applied speeds so the
+        // next cycle writes the plugin's targets again.
+        private async Task ReassertAfterModeSwitchAsync()
+        {
+            try
+            {
+                await Task.Delay(ModeSwitchSettleMs).ConfigureAwait(false);
+                if (_disposed || !_isEnabled) return;
+                _lastAppliedRpm.Clear();
+                Logger.Debug("ModeSwitch: re-asserting fan targets after power mode switch");
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"ModeSwitch: re-assert failed: {ex.Message}");
+            }
         }
 
         private async Task ForceRefreshAsync()
