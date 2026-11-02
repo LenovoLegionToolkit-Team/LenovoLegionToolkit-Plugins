@@ -19,6 +19,7 @@ Provides advanced, algorithm-driven control over the cooling system on supported
   - **Configurable Power Range:** Idle and full-load watts can be set separately for CPU and GPU, so high-power hardware doesn't count every load as full load. Defaults keep the original 20–65 W range.
   - Settings that Smart Auto currently ignores are greyed out, with a note explaining why.
 - **Firmware RPM Units:** Optional `WriteRpmInHundreds` setting for firmware that reads the requested fan speed as one byte in hundreds of RPM (e.g. 18 = 1,800 RPM).
+- **Safe Power Mode Switching:** When a power mode switch (e.g. Fn+Q) takes fan control away from the plugin, it waits for the firmware to settle before handing the fans back, and only if they are still at the plugin's speeds. Handing back mid-switch could leave the fans stopped.
 - **Asymmetric Step-Down:** Smooth fan deceleration curves to mitigate audible chopping and prevent physical bearing wear.
 - **Spin-Up Boost:** Applies a brief, high-RPM burst when starting a fan from 0 RPM to reliably overcome physical bearing static friction.
 - **Fan Speed Synchronization:** Automatically scales all fans to match the highest relative speed percentage demanded by the system, balancing airflow.
