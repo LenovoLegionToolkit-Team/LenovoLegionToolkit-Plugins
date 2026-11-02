@@ -35,6 +35,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private string? _currentModeName;
         private const int ModeSwitchSettleMs = 5000;
         private const int ModeSwitchMatchToleranceRpm = 200;
+        private long _lastModeSwitchTicks;
         private bool _powerModeFeatureBroken;
         private int _uiOpenCount;
         private int _isProcessing;
@@ -850,6 +851,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 var previousMode = _currentModeName;
                 _isMaxPerformanceMode = await CheckIsMaxPerformanceModeAsync().ConfigureAwait(false);
                 bool modeSwitched = previousMode != null && _currentModeName != null && previousMode != _currentModeName;
+                if (modeSwitched)
+                    Interlocked.Exchange(ref _lastModeSwitchTicks, DateTime.UtcNow.Ticks);
 
                 var user = _configManager.Settings.IsCustomFanEnabled;
                 var shouldEnable = user && (_hardware.IsSupported &&
@@ -940,13 +943,26 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             return false;
         }
 
+        // Waits until no power mode switch has happened for ModeSwitchSettleMs. Fn+Q steps through modes one press at a time, so
+        // every further switch restarts the wait. Returns the switch timestamp the wait settled on.
+        private async Task<long> WaitForModeSwitchesToSettleAsync()
+        {
+            while (true)
+            {
+                long lastSwitch = Interlocked.Read(ref _lastModeSwitchTicks);
+                var remaining = TimeSpan.FromMilliseconds(ModeSwitchSettleMs) - TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastSwitch);
+                if (remaining <= TimeSpan.Zero) return lastSwitch;
+                await Task.Delay(remaining).ConfigureAwait(false);
+            }
+        }
+
         // Waits for the firmware to settle after a power mode switch, then hands the fans back only if they are still at the
         // speeds the plugin last set (firmware that does not take them back by itself).
         private async Task HandBackAfterModeSwitchAsync(Dictionary<int, int> appliedBeforeSwitch)
         {
             try
             {
-                await Task.Delay(ModeSwitchSettleMs).ConfigureAwait(false);
+                long settledAt = await WaitForModeSwitchesToSettleAsync().ConfigureAwait(false);
                 if (_disposed || _isEnabled || _isFullSpeed) return;
 
                 bool stillPluginControlled = false;
@@ -961,6 +977,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
                 if (stillPluginControlled)
                 {
+                    // Another switch may have started while the fans were being read; never hand back in the middle of one.
+                    if (Interlocked.Read(ref _lastModeSwitchTicks) != settledAt)
+                    {
+                        Logger.Debug("ModeSwitch: another power mode switch started, waiting for it to settle");
+                        await HandBackAfterModeSwitchAsync(appliedBeforeSwitch).ConfigureAwait(false);
+                        return;
+                    }
+
                     Logger.Debug("ModeSwitch: fans still at plugin speeds after settling, handing back to firmware");
                     await RestoreAutoFanAsync().ConfigureAwait(false);
                 }
@@ -981,7 +1005,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             try
             {
-                await Task.Delay(ModeSwitchSettleMs).ConfigureAwait(false);
+                await WaitForModeSwitchesToSettleAsync().ConfigureAwait(false);
                 if (_disposed || !_isEnabled) return;
                 _lastAppliedRpm.Clear();
                 Logger.Debug("ModeSwitch: re-asserting fan targets after power mode switch");
