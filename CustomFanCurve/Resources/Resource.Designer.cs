@@ -1268,7 +1268,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enforces safe minimum fan speed thresholds at high temperatures..
+        ///   Looks up a localized string similar to Keeps fan speed rising with temperature and enforces the safe minimum fan percentage..
         /// </summary>
         public static string ThermalSafetyNetDesc {
             get {

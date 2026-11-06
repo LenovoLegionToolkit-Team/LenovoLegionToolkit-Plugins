@@ -521,7 +521,7 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
     <value>Temperature</value>
   </data>
   <data name="ThermalSafetyNetDesc" xml:space="preserve">
-    <value>Enforces safe minimum fan speed thresholds at high temperatures.</value>
+    <value>Keeps fan speed rising with temperature and enforces the safe minimum fan percentage.</value>
   </data>
   <data name="Tuning" xml:space="preserve">
     <value>Tuning</value>

@@ -29,9 +29,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             {
                 for (var i = 0; i < sorted.Count - 1; i++)
                 {
-                    if (temperature >= sorted[i].Temperature && temperature <= sorted[i + 1].Temperature)
+                    var t0 = sorted[i].Temperature;
+                    var t1 = sorted[i + 1].Temperature;
+                    if (temperature >= t0 && temperature <= t1)
                     {
-                        var ratio = (temperature - sorted[i].Temperature) / (sorted[i + 1].Temperature - sorted[i].Temperature);
+                        if (Math.Abs(t1 - t0) < 0.0001f)
+                        {
+                            return (int)Math.Round(sorted[i].TargetPercent / 100.0 * maxRpm);
+                        }
+
+                        var ratio = (temperature - t0) / (t1 - t0);
                         targetPercent = sorted[i].TargetPercent + ratio * (sorted[i + 1].TargetPercent - sorted[i].TargetPercent);
                         return (int)Math.Round(targetPercent / 100.0 * maxRpm);
                     }

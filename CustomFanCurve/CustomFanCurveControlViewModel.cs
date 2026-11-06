@@ -22,6 +22,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private CancellationTokenSource? _saveCts;
         private bool _isEnforcingMonotonicity;
         private CurveNode? _nodeToSelectNext;
+        private bool IsThermalSafetyNetEnabled => _configManager.Settings.EnableThermalSafetyNet;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -55,6 +56,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private void EnforceMonotonicity(CurveNode changedNode, string propertyName)
         {
+            if (!IsThermalSafetyNetEnabled) return;
             if (CurveNodes.Count < 2) return;
 
             var otherNodes = CurveNodes.Where(n => n != changedNode).OrderBy(n => n.Temperature).ToList();
@@ -194,13 +196,19 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             if (display?.Node == null) return;
             temperature = Math.Clamp(temperature, 0, 100);
 
-            var otherNodes = CurveNodes.Where(n => n != display.Node).OrderBy(n => n.Temperature).ToList();
-            var prevNode = otherNodes.LastOrDefault(n => n.Temperature <= temperature);
-            var nextNode = otherNodes.FirstOrDefault(n => n.Temperature >= temperature);
+            int minPercent = 0;
+            int maxPercent = 100;
 
-            int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temperature);
-            int minPercent = Math.Max(safeMinPercent, prevNode != null ? prevNode.TargetPercent : 0);
-            int maxPercent = nextNode != null ? nextNode.TargetPercent : 100;
+            if (IsThermalSafetyNetEnabled)
+            {
+                var otherNodes = CurveNodes.Where(n => n != display.Node).OrderBy(n => n.Temperature).ToList();
+                var prevNode = otherNodes.LastOrDefault(n => n.Temperature <= temperature);
+                var nextNode = otherNodes.FirstOrDefault(n => n.Temperature >= temperature);
+
+                int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(temperature);
+                minPercent = Math.Max(safeMinPercent, prevNode != null ? prevNode.TargetPercent : 0);
+                maxPercent = nextNode != null ? nextNode.TargetPercent : 100;
+            }
 
             targetPercent = Math.Clamp(targetPercent, minPercent, maxPercent);
 
