@@ -74,7 +74,7 @@
   </PropertyGroup>
 
   <Target Name="PatchAssemblyVersion" AfterTargets="AfterBuild">
-    <Exec Command="dotnet run --project &quot;..\AssemblyVersionPatcher\AssemblyVersionPatcher.csproj&quot; -c $(Configuration) -- &quot;$(TargetPath)&quot; LenovoLegionToolkit.Lib" />
+    <Exec Command="dotnet run --project &quot;..\AssemblyVersionPatcher\AssemblyVersionPatcher.csproj&quot; -c $(Configuration) -p:UseAppHost=false -- &quot;$(TargetPath)&quot; LenovoLegionToolkit.Lib" />
   </Target>
 
 </Project>
