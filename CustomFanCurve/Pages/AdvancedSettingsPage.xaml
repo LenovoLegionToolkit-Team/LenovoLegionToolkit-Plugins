@@ -28,6 +28,26 @@
                                         <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding IsSmartAutoEnabled}"/>
                                     </wpfui:CardControl>
 
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding IsSmartAutoEnabled}">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartSpikeFilter}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartSpikeFilterDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding SmartSpikeFilterEnabled}"/>
+                                    </wpfui:CardControl>
+
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding IsSmartAutoEnabled}">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.SmartHoldMinimumAtIdle}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.SmartHoldMinimumAtIdleDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding SmartHoldMinimumAtIdle}"/>
+                                    </wpfui:CardControl>
+
                                 
 
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.UiAndMonitoring}"/>

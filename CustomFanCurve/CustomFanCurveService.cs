@@ -32,6 +32,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private bool _isEnabled;
         private bool _isFullSpeed;
         private bool _isMaxPerformanceMode;
+        private string? _currentModeName;
+        private const int ModeSwitchSettleMs = 5000;
+        private const int ModeSwitchMatchToleranceRpm = 200;
+        private long _lastModeSwitchTicks;
         private bool _powerModeFeatureBroken;
         private int _uiOpenCount;
         private int _isProcessing;
@@ -47,6 +51,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly ConcurrentDictionary<int, double> _emaTemp = new();
         private readonly ConcurrentDictionary<int, int> _lastIdealRpm = new();
         private readonly ConcurrentDictionary<int, long> _lastWriteTick = new();
+        private readonly SmartRampGate _smartRampGate = new();
 
         private readonly ConcurrentDictionary<int, float> _lastRawTemp = new();
         private readonly ConcurrentDictionary<int, long> _lastRawTempTick = new();
@@ -249,7 +254,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             await ReevaluateStateAsync();
         }
 
-        private async Task SetEnabledAsync(bool enable)
+        private async Task SetEnabledAsync(bool enable, bool restoreAuto = true)
         {
             if (_disposed) return;
             if (_isEnabled == enable) return;
@@ -264,7 +269,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
             else
             {
-                if (!_isFullSpeed)
+                if (!_isFullSpeed && restoreAuto)
                     await RestoreAutoFanAsync();
                 if (_uiOpenCount <= 0)
                     StopSensorsIfNeeded();
@@ -472,7 +477,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             if (_configManager.Settings.IsSmartAutoEnabled && !_isFullSpeed)
             {
-                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot);
+                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot, _configManager.Settings);
                 var outputStr = string.Join(" | ", results.OrderBy(kv => kv.Key).Select(kv => 
                 {
                     string fanName = kv.Key switch { 2 => "GPU Fan", 4 => "PCH Fan", 1 => "CPU Fan", _ => $"Fan {kv.Key}" };
@@ -512,6 +517,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
 
             _lastAppliedRpm[fanId] = max;
+            _smartRampGate.Reset(fanId);
             TryUpdateMonitoring(fanId, temp, max, max, true);
         }
 
@@ -599,6 +605,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
             if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
                 needRecalc = false;
+            // Smart Auto's ramp gate tracks spike/hold timers, so it must observe every sensor cycle.
+            bool useSpikeFilter = settings.IsSmartAutoEnabled && settings.SmartSpikeFilterEnabled;
+            if (useSpikeFilter)
+                needRecalc = true;
+            else
+                _smartRampGate.Reset(fanId);
 
             int targetRpm;
             if (needRecalc)
@@ -610,7 +622,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     var availIds = _hardware.AvailableFanIds;
                     int fanIndex = 0;
                     for (int fi = 0; fi < availIds.Count; fi++) { if (availIds[fi] == fanId) { fanIndex = fi; break; } }
-                    idealRpm = FuzzyLogicFanController.CalculateSmartRpm(snapshot, evalTemp, _hardware.GetMaxRpm(fanId), cachedRpm, fanIndex);
+                    idealRpm = FuzzyLogicFanController.CalculateSmartRpm(snapshot, evalTemp, _hardware.GetMaxRpm(fanId), cachedRpm, fanIndex, settings);
                 }
                 else
                 {
@@ -633,11 +645,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
+                if (useSpikeFilter)
+                {
+                    bool isEmergency = safetyEvalTemp >= Math.Min(90, settings.SafeMaxTemp);
+                    idealRpm = _smartRampGate.Apply(fanId, idealRpm, currentRpm, _hardware.GetMinRpm(fanId), safetyEvalTemp, isEmergency, now, settings);
+                }
+
                 // Asymmetric Step-Down: Smooths fan deceleration to prevent bearing wear and audible chopping.
                 int lastCalcRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
                 targetRpm = idealRpm;
 
-                if (settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
+                if (!useSpikeFilter && settings.EnableStepDownGlide && settings.StepDownRateRpmPerSec > 0 && idealRpm < lastCalcRpm)
                 {
                     double rawDt = (now - lastTick) / (double)TimeSpan.TicksPerSecond;
                     double dtSeconds = Math.Min(rawDt, 2.0);
@@ -647,7 +665,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
 
                 int minRpm = _hardware.GetMinRpm(fanId);
-                if (targetRpm > 0 && targetRpm < minRpm)
+                if (settings.IsSmartAutoEnabled && settings.SmartHoldMinimumAtIdle)
+                {
+                    // Writing 0 hands the fan back to the BIOS, so Smart Auto holds the quietest speed it controls instead.
+                    targetRpm = Math.Max(targetRpm, minRpm);
+                }
+                else if (targetRpm > 0 && targetRpm < minRpm)
                 {
                     targetRpm = 0;
                 }
@@ -795,7 +818,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             if (_configManager.Settings.IsSmartAutoEnabled)
             {
-                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot);
+                var telemetry = FuzzyLogicFanController.GetGlobalTelemetryStrings(snapshot, _configManager.Settings);
                 var decision = _hardware.IsSupported 
                     ? Resources.Resource.SmartAutoInactiveRequiresCustom 
                     : Resources.Resource.SmartAutoHardwareNotSupported;
@@ -825,14 +848,32 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             {
                 if (_disposed) return;
 
+                var previousMode = _currentModeName;
                 _isMaxPerformanceMode = await CheckIsMaxPerformanceModeAsync().ConfigureAwait(false);
+                bool modeSwitched = previousMode != null && _currentModeName != null && previousMode != _currentModeName;
+                if (modeSwitched)
+                    Interlocked.Exchange(ref _lastModeSwitchTicks, DateTime.UtcNow.Ticks);
 
                 var user = _configManager.Settings.IsCustomFanEnabled;
                 var shouldEnable = user && (_hardware.IsSupported &&
                     (_isMaxPerformanceMode || _configManager.Settings.ApplyToAllPowerModes));
                 if (shouldEnable != _isEnabled)
-                    Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} -> shouldEnable={shouldEnable}");
-                await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
+                    Logger.Debug($"HandleModeChange: userEnabled={user} hwSupported={_hardware.IsSupported} isMaxPerf={_isMaxPerformanceMode} applyToAll={_configManager.Settings.ApplyToAllPowerModes} mode={previousMode}->{_currentModeName} -> shouldEnable={shouldEnable}");
+
+                // Power Mode Switch: The firmware takes the fans back by itself a few seconds after switching modes. Writing the
+                // hand-back (0) while it is still switching can leave the fans stopped, so hand back only after it settles, if needed.
+                if (modeSwitched && _isEnabled && !shouldEnable && !_isFullSpeed)
+                {
+                    var appliedBeforeSwitch = new Dictionary<int, int>(_lastAppliedRpm);
+                    await SetEnabledAsync(false, restoreAuto: false).ConfigureAwait(false);
+                    _ = HandBackAfterModeSwitchAsync(appliedBeforeSwitch);
+                }
+                else
+                {
+                    if (modeSwitched && _isEnabled && shouldEnable)
+                        _ = ReassertAfterModeSwitchAsync();
+                    await SetEnabledAsync(shouldEnable).ConfigureAwait(false);
+                }
 
                 var settings = _configManager.Settings;
                 if (settings.ForceRefreshOnModeSwitch && (shouldEnable || _isFullSpeed))
@@ -851,6 +892,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                     _lastCalcRpm.Clear();
                     _lastCalcTick.Clear();
                     _lastFingerprint.Clear();
+                    _smartRampGate.Clear();
                 }
             }
             finally
@@ -867,6 +909,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await _powerModeFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    _currentModeName = state.ToString();
                     var isMax = state == PowerModeState.GodMode;
                     Logger.Debug($"CheckMaxPerf: PowerModeFeature state={state} isMaxPerf={isMax}");
                     return isMax;
@@ -887,6 +930,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 {
                     var state = await itsFeature.GetStateAsync()
                         .WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(3)).Token).ConfigureAwait(false);
+                    _currentModeName = state.ToString();
                     var isMax = state == ITSMode.MmcGeek;
                     if (isMax != _isMaxPerformanceMode)
                         Logger.Debug($"CheckMaxPerf: ITS state={state} isMaxPerf={isMax}");
@@ -897,6 +941,79 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             Logger.Debug("CheckMaxPerf: no power mode feature available, returning false");
             return false;
+        }
+
+        // Waits until no power mode switch has happened for ModeSwitchSettleMs. Fn+Q steps through modes one press at a time, so
+        // every further switch restarts the wait. Returns the switch timestamp the wait settled on.
+        private async Task<long> WaitForModeSwitchesToSettleAsync()
+        {
+            while (true)
+            {
+                long lastSwitch = Interlocked.Read(ref _lastModeSwitchTicks);
+                var remaining = TimeSpan.FromMilliseconds(ModeSwitchSettleMs) - TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastSwitch);
+                if (remaining <= TimeSpan.Zero) return lastSwitch;
+                await Task.Delay(remaining).ConfigureAwait(false);
+            }
+        }
+
+        // Waits for the firmware to settle after a power mode switch, then hands the fans back only if they are still at the
+        // speeds the plugin last set (firmware that does not take them back by itself).
+        private async Task HandBackAfterModeSwitchAsync(Dictionary<int, int> appliedBeforeSwitch)
+        {
+            try
+            {
+                long settledAt = await WaitForModeSwitchesToSettleAsync().ConfigureAwait(false);
+                if (_disposed || _isEnabled || _isFullSpeed) return;
+
+                bool stillPluginControlled = false;
+                foreach (var fanId in _hardware.AvailableFanIds)
+                {
+                    int rpm = await _hardware.GetFanRpmAsync(fanId).ConfigureAwait(false);
+                    bool hadApplied = appliedBeforeSwitch.TryGetValue(fanId, out var applied);
+                    bool atPluginSpeed = hadApplied && applied > 0 && Math.Abs(rpm - applied) <= ModeSwitchMatchToleranceRpm;
+                    stillPluginControlled |= atPluginSpeed;
+                    Logger.Debug($"ModeSwitch: Fan{fanId} rpm={rpm} lastApplied={(hadApplied ? applied : -1)} atPluginSpeed={atPluginSpeed}");
+                }
+
+                if (stillPluginControlled)
+                {
+                    // Another switch may have started while the fans were being read; never hand back in the middle of one.
+                    if (Interlocked.Read(ref _lastModeSwitchTicks) != settledAt)
+                    {
+                        Logger.Debug("ModeSwitch: another power mode switch started, waiting for it to settle");
+                        await HandBackAfterModeSwitchAsync(appliedBeforeSwitch).ConfigureAwait(false);
+                        return;
+                    }
+
+                    Logger.Debug("ModeSwitch: fans still at plugin speeds after settling, handing back to firmware");
+                    await RestoreAutoFanAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    Logger.Debug("ModeSwitch: firmware has taken over the fans, no hand-back needed");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"ModeSwitch: deferred hand-back failed: {ex.Message}");
+            }
+        }
+
+        // After a power mode switch the firmware takes the fans back; once it has settled, forget the last applied speeds so the
+        // next cycle writes the plugin's targets again.
+        private async Task ReassertAfterModeSwitchAsync()
+        {
+            try
+            {
+                await WaitForModeSwitchesToSettleAsync().ConfigureAwait(false);
+                if (_disposed || !_isEnabled) return;
+                _lastAppliedRpm.Clear();
+                Logger.Debug("ModeSwitch: re-asserting fan targets after power mode switch");
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"ModeSwitch: re-assert failed: {ex.Message}");
+            }
         }
 
         private async Task ForceRefreshAsync()

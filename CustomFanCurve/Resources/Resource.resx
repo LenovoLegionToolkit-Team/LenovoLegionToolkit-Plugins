@@ -453,6 +453,27 @@
   <data name="SmartAutoInactiveRequiresCustom" xml:space="preserve">
     <value>Inactive (requires Custom Mode or "Apply to All Power Modes" to be enabled).</value>
   </data>
+  <data name="SmartAutoNotUsed" xml:space="preserve">
+    <value>Not used while Smart Auto is on.</value>
+  </data>
+  <data name="SmartAutoNotUsedHoldMinimum" xml:space="preserve">
+    <value>Not used while Smart Auto holds the minimum speed at idle.</value>
+  </data>
+  <data name="SmartAutoNotUsedSpikeFilter" xml:space="preserve">
+    <value>Not used while the Smart Auto spike filter is on.</value>
+  </data>
+  <data name="SmartHoldMinimumAtIdle" xml:space="preserve">
+    <value>Hold Minimum Speed at Idle</value>
+  </data>
+  <data name="SmartHoldMinimumAtIdleDesc" xml:space="preserve">
+    <value>When the target is below the fan minimum, keep the fan at its minimum instead of handing control back to the BIOS. Useful when the BIOS idle speed fluctuates; leave off if your BIOS stops the fans at idle.</value>
+  </data>
+  <data name="SmartSpikeFilter" xml:space="preserve">
+    <value>Spike Filter</value>
+  </data>
+  <data name="SmartSpikeFilterDesc" xml:space="preserve">
+    <value>Ignores short load spikes: fans wait a few seconds (less when hot) before ramping up gradually, and hold briefly before gliding down. Repeated ramp-ups, as in gaming, keep the fans steadier. Emergency temperatures bypass the filter.</value>
+  </data>
   <data name="SmartAutoPowerLoad" xml:space="preserve">
     <value>Power Load:</value>
   </data>

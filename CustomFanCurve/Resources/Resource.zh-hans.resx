@@ -453,6 +453,27 @@
   <data name="SmartAutoInactiveRequiresCustom" xml:space="preserve">
     <value>未激活 (需要自定义模式或应用至所有模式)</value>
   </data>
+  <data name="SmartAutoNotUsed" xml:space="preserve">
+    <value>智能自动控制开启时不使用。</value>
+  </data>
+  <data name="SmartAutoNotUsedHoldMinimum" xml:space="preserve">
+    <value>智能自动控制在空闲时保持最低转速时不使用。</value>
+  </data>
+  <data name="SmartAutoNotUsedSpikeFilter" xml:space="preserve">
+    <value>智能自动控制的尖峰过滤开启时不使用。</value>
+  </data>
+  <data name="SmartHoldMinimumAtIdle" xml:space="preserve">
+    <value>空闲时保持最低转速</value>
+  </data>
+  <data name="SmartHoldMinimumAtIdleDesc" xml:space="preserve">
+    <value>当目标低于风扇最低转速时，保持最低转速，而不是将控制权交还给 BIOS。适用于 BIOS 空闲转速波动的情况；如果你的 BIOS 在空闲时会停转风扇，请保持关闭。</value>
+  </data>
+  <data name="SmartSpikeFilter" xml:space="preserve">
+    <value>尖峰过滤</value>
+  </data>
+  <data name="SmartSpikeFilterDesc" xml:space="preserve">
+    <value>忽略短暂的负载尖峰：风扇会先等待几秒（温度越高等待越短）再逐步升速，降速前会短暂保持后平滑下降。频繁升速（如游戏时）会让风扇更平稳。紧急温度会绕过此过滤。</value>
+  </data>
   <data name="SmartAutoPowerLoad" xml:space="preserve">
     <value>功耗负载：</value>
   </data>

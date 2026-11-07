@@ -39,7 +39,9 @@
                                     </wpfui:CardControl>
 
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.Hysteresis}"/>
-                            
+                            <TextBlock Style="{StaticResource SmartAutoNotUsedNote}" Visibility="{Binding IsSmartAutoEnabled, Converter={StaticResource BoolToVis}}"/>
+
+                                <StackPanel IsEnabled="{Binding IsCurveOnlySettingsEnabled}">
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">
@@ -59,6 +61,7 @@
                                         </wpfui:CardControl.Header>
                                         <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding HysteresisDeadzoneTemp, UpdateSourceTrigger=PropertyChanged}"/>
                                     </wpfui:CardControl>
+                                </StackPanel>
 
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.PredictiveEngine}"/>
                             
@@ -93,7 +96,9 @@
                                     </wpfui:CardControl>
 
                             <TextBlock Style="{StaticResource SubHeader}" Text="{x:Static res:Resource.StepDownGliding}"/>
+                            <TextBlock Style="{StaticResource SmartAutoNotUsedNote}" Text="{x:Static res:Resource.SmartAutoNotUsedSpikeFilter}" Visibility="{Binding IsCalcSchedulingIgnored, Converter={StaticResource BoolToVis}}"/>
 
+                                <StackPanel IsEnabled="{Binding IsCalcSchedulingEnabled}">
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">
@@ -113,7 +118,8 @@
                                         </wpfui:CardControl.Header>
                                         <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding StepDownRateRpmPerSec, UpdateSourceTrigger=PropertyChanged}"/>
                                     </wpfui:CardControl>
-                                    
+                                </StackPanel>
+
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding EnableStepDownGlide}">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">

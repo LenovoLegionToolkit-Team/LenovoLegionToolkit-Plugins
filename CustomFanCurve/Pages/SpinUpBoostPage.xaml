@@ -26,7 +26,9 @@
                                 <wpfui:SymbolIcon Grid.Column="0" Symbol="Info24" FontSize="12" Margin="0,2,4,0" VerticalAlignment="Top" Foreground="{DynamicResource SpinUpInfoBrush}"/>
                                 <TextBlock Grid.Column="1" Text="{x:Static res:Resource.SpinUpDesc}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource SpinUpInfoBrush}"/>
                             </Grid>
-                            
+                            <TextBlock Style="{StaticResource SmartAutoNotUsedNote}" Text="{x:Static res:Resource.SmartAutoNotUsedHoldMinimum}" Visibility="{Binding IsSpinUpIgnored, Converter={StaticResource BoolToVis}}"/>
+
+                                <StackPanel IsEnabled="{Binding IsSpinUpEnabled}">
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">
@@ -56,7 +58,8 @@
                                         </wpfui:CardControl.Header>
                                         <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding SpinUpBoostDurationMs, UpdateSourceTrigger=PropertyChanged}"/>
                                     </wpfui:CardControl>
-                                
+                                </StackPanel>
+
         </StackPanel>
     </wpfui:DynamicScrollViewer>
 </UserControl>
