@@ -59,19 +59,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
     internal static class Runtime
     {
-        private static readonly object _lock = new();
-        private static readonly Dictionary<int, FanMonitoringSnapshot> _data = new();
-
-        public static event EventHandler? MonitoringUpdated;
         public static IExtensionProvider? Provider { get; private set; }
-
-        public static IReadOnlyDictionary<int, FanMonitoringSnapshot> Monitoring
-        {
-            get
-            {
-                lock (_lock) { return new Dictionary<int, FanMonitoringSnapshot>(_data); }
-            }
-        }
 
         public static void Attach(IExtensionProvider provider)
         {
@@ -82,16 +70,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         {
             if (ReferenceEquals(Provider, provider))
                 Provider = null;
-
-            lock (_lock) { _data.Clear(); }
-
-            MonitoringUpdated?.Invoke(null, EventArgs.Empty);
-        }
-
-        public static void Update(int fanId, float temp, int rpm, int targetRpm)
-        {
-            lock (_lock) { _data[fanId] = new FanMonitoringSnapshot(temp, rpm, targetRpm); }
-            MonitoringUpdated?.Invoke(null, EventArgs.Empty);
         }
     }
 
