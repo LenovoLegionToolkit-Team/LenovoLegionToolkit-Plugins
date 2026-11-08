@@ -633,6 +633,21 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 int safeMinRpm = (int)Math.Round(safeMinPercent / 100.0 * _hardware.GetMaxRpm(fanId));
                 idealRpm = Math.Max(idealRpm, safeMinRpm);
 
+                int stepRpm = _hardware.GetRpmStep(fanId);
+                int ceilingRpm = _hardware.GetMaxRpm(fanId);
+                int floorRpm = Math.Min(_hardware.GetMinRpm(fanId), ceilingRpm);
+                if (idealRpm > 0)
+                {
+                    if (stepRpm > 1)
+                    {
+                        idealRpm = (int)Math.Round(idealRpm / (double)stepRpm) * stepRpm;
+                    }
+
+                    idealRpm = Math.Clamp(idealRpm, floorRpm, ceilingRpm);
+                }
+
+                Logger.Debug($"Fan{fanId}: normalized ideal={idealRpm} floor={floorRpm} ceiling={ceilingRpm} step={stepRpm}");
+
                 // Asymmetric Step-Down: Smooths fan deceleration to prevent bearing wear and audible chopping.
                 int lastCalcRpm = _lastCalcRpm.TryGetValue(fanId, out int value) ? value : idealRpm;
                 targetRpm = idealRpm;
@@ -769,7 +784,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var now = DateTime.UtcNow.Ticks;
             if (force || now - _lastUiUpdateTicks.GetValueOrDefault(fanId) >= interval)
             {
-                _monitoring.Update(fanId, temp, rpm, targetRpm);
+                _monitoring.Update(fanId, temp, rpm, targetRpm, 0, _hardware.GetMinRpm(fanId), _hardware.GetMaxRpm(fanId), _hardware.GetRpmStep(fanId));
                 _lastUiUpdateTicks[fanId] = now;
             }
         }
@@ -790,7 +805,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
                 catch { /* Ignore */ }
 
-                _monitoring.Update(fanId, temp, rpm, _lastAppliedRpm.TryGetValue(fanId, out var tr) ? tr : 0);
+                _monitoring.Update(fanId, temp, rpm, _lastAppliedRpm.TryGetValue(fanId, out var tr) ? tr : 0, 0, _hardware.GetMinRpm(fanId), _hardware.GetMaxRpm(fanId), _hardware.GetRpmStep(fanId));
             }
 
             if (_configManager.Settings.IsSmartAutoEnabled)

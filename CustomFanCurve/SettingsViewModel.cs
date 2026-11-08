@@ -29,8 +29,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             _temperatureDeltaThreshold = s.TemperatureDeltaThreshold;
             _ignoreZeroTemperature = s.IgnoreZeroTemperature;
             _alwaysWriteRpm = s.AlwaysWriteRpm;
+            _writeRpmInHundreds = s.WriteRpmInHundreds;
             _forceWriteWhenRpmZero = s.ForceWriteWhenRpmZero;
             _minimumRpmChangeToApply = s.MinimumRpmChangeToApply;
+            _minimumSpeedPercent = s.MinimumSpeedPercent;
             _spinUpBoostEnabled = s.SpinUpBoostEnabled;
             _spinUpBoostRpm = s.SpinUpBoostRpm;
             _spinUpBoostDurationMs = s.SpinUpBoostDurationMs;
@@ -86,8 +88,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             Save(nameof(CustomFanCurveSettings.TemperatureDeltaThreshold), _temperatureDeltaThreshold);
             Save(nameof(CustomFanCurveSettings.IgnoreZeroTemperature), _ignoreZeroTemperature);
             Save(nameof(CustomFanCurveSettings.AlwaysWriteRpm), _alwaysWriteRpm);
+            Save(nameof(CustomFanCurveSettings.WriteRpmInHundreds), _writeRpmInHundreds);
             Save(nameof(CustomFanCurveSettings.ForceWriteWhenRpmZero), _forceWriteWhenRpmZero);
             Save(nameof(CustomFanCurveSettings.MinimumRpmChangeToApply), _minimumRpmChangeToApply);
+            Save(nameof(CustomFanCurveSettings.MinimumSpeedPercent), _minimumSpeedPercent);
             Save(nameof(CustomFanCurveSettings.SpinUpBoostEnabled), _spinUpBoostEnabled);
             Save(nameof(CustomFanCurveSettings.SpinUpBoostRpm), _spinUpBoostRpm);
             Save(nameof(CustomFanCurveSettings.SpinUpBoostDurationMs), _spinUpBoostDurationMs);
@@ -283,6 +287,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
+        private bool _writeRpmInHundreds;
+        public bool WriteRpmInHundreds
+        {
+            get => _writeRpmInHundreds;
+            set
+            {
+                if (_writeRpmInHundreds != value)
+                {
+                    _writeRpmInHundreds = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private bool _forceWriteWhenRpmZero;
         public bool ForceWriteWhenRpmZero
         {
@@ -306,6 +324,21 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (_minimumRpmChangeToApply != value)
                 {
                     _minimumRpmChangeToApply = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private int _minimumSpeedPercent;
+        public int MinimumSpeedPercent
+        {
+            get => _minimumSpeedPercent;
+            set
+            {
+                int clamped = Math.Clamp(value, 0, 100);
+                if (_minimumSpeedPercent != clamped)
+                {
+                    _minimumSpeedPercent = clamped;
                     OnPropertyChanged();
                 }
             }
@@ -636,8 +669,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             TemperatureDeltaThreshold = defaultSettings.TemperatureDeltaThreshold;
             IgnoreZeroTemperature = defaultSettings.IgnoreZeroTemperature;
             AlwaysWriteRpm = defaultSettings.AlwaysWriteRpm;
+            WriteRpmInHundreds = defaultSettings.WriteRpmInHundreds;
             ForceWriteWhenRpmZero = defaultSettings.ForceWriteWhenRpmZero;
             MinimumRpmChangeToApply = defaultSettings.MinimumRpmChangeToApply;
+            MinimumSpeedPercent = defaultSettings.MinimumSpeedPercent;
             SpinUpBoostEnabled = defaultSettings.SpinUpBoostEnabled;
             SpinUpBoostRpm = defaultSettings.SpinUpBoostRpm;
             SpinUpBoostDurationMs = defaultSettings.SpinUpBoostDurationMs;

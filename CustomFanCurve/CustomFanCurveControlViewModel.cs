@@ -155,6 +155,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private string _targetRpmDisplay = "--";
         public string TargetRpmDisplay { get => _targetRpmDisplay; set { _targetRpmDisplay = value; OnPropertyChanged(); } }
 
+        private string _rangeDisplay = "--";
+        public string RangeDisplay { get => _rangeDisplay; set { _rangeDisplay = value; OnPropertyChanged(); } }
+
+        private string _stepDisplay = "--";
+        public string StepDisplay { get => _stepDisplay; set { _stepDisplay = value; OnPropertyChanged(); } }
+
         private int _currentRpmValue;
         public int CurrentRpmValue { get => _currentRpmValue; set { _currentRpmValue = value; OnPropertyChanged(); } }
 
@@ -164,7 +170,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private CurveNodeDisplay? _selectedNodeDisplay;
         public CurveNodeDisplay? SelectedNodeDisplay { get => _selectedNodeDisplay; set { if (_selectedNodeDisplay != value) { _selectedNodeDisplay = value; OnPropertyChanged(); } } }
 
-        public int MaxRpm => _configManager.Settings.FanMaxRpms.TryGetValue(FanId, out var rpm) && rpm > 0 ? rpm : 6400;
+        private int _reportedMaxRpm;
+
+        public int MaxRpm => _reportedMaxRpm > 0 ? _reportedMaxRpm : (_configManager.Settings.FanMaxRpms.TryGetValue(FanId, out var rpm) && rpm > 0 ? rpm : 6400);
 
         public ICommand AddNodeCommand { get; }
         public ICommand RemoveNodeCommand { get; }
@@ -265,6 +273,16 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             ActualRpmDisplay = $"{snapshot.Rpm} RPM";
             TargetRpmDisplay = $"{snapshot.TargetRpm} RPM";
             CurrentRpmValue = snapshot.Rpm;
+
+            if (snapshot.MaxRpm > 0 && snapshot.MaxRpm != _reportedMaxRpm)
+            {
+                _reportedMaxRpm = snapshot.MaxRpm;
+                OnPropertyChanged(nameof(MaxRpm));
+                System.Windows.Application.Current?.Dispatcher.InvokeAsync(RefreshGraphPoints);
+            }
+
+            RangeDisplay = $"{snapshot.MinRpm} - {snapshot.MaxRpm} RPM";
+            StepDisplay = $"{snapshot.RpmStep} RPM";
         }
 
         private void UpdateGraphPointsFromNodes()

@@ -8,7 +8,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
     {
         event Action<int, FanMonitoringSnapshot>? MonitoringUpdated;
         IReadOnlyDictionary<int, FanMonitoringSnapshot> Current { get; }
-        void Update(int fanId, float temp, int rpm, int targetRpm);
+        void Update(int fanId, float temp, int rpm, int targetRpm, int appliedPwm, int minRpm, int maxRpm, int rpmStep);
     }
 
     public class CustomFanMonitoringService : ICustomFanMonitoringService
@@ -25,12 +25,12 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
         }
 
-        public void Update(int fanId, float temp, int rpm, int targetRpm)
+        public void Update(int fanId, float temp, int rpm, int targetRpm, int appliedPwm, int minRpm, int maxRpm, int rpmStep)
         {
             FanMonitoringSnapshot snapshot;
             lock (_data)
             {
-                snapshot = new FanMonitoringSnapshot(temp, rpm, targetRpm);
+                snapshot = new FanMonitoringSnapshot(temp, rpm, targetRpm, appliedPwm, minRpm, maxRpm, rpmStep);
                 _data[fanId] = snapshot;
             }
 
@@ -38,5 +38,5 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         }
     }
 
-    public sealed record FanMonitoringSnapshot(float Temperature, int Rpm, int TargetRpm);
+    public sealed record FanMonitoringSnapshot(float Temperature, int Rpm, int TargetRpm, int AppliedPwm, int MinRpm, int MaxRpm, int RpmStep);
 }

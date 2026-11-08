@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management;
 using System.Threading.Tasks;
 using LenovoLegionToolkit.Lib;
 using LenovoLegionToolkit.Lib.System.Management;
@@ -17,6 +18,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         int GetMinRpm(int fanId);
         Task SetFanRpmAsync(int fanId, int rpm);
         Task<int> GetFanRpmAsync(int fanId);
+        int GetRpmStep(int fanId);
         Task RestoreAutoAsync();
     }
 
@@ -27,14 +29,71 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly Dictionary<int, CapabilityID> _capabilityIds = new();
         private readonly List<int> _fanIds = new();
 
+        private readonly Dictionary<int, int> _tableMaxRpms = new();
+        private readonly Dictionary<int, int> _tableMinRpms = new();
+        private readonly Dictionary<int, int> _tableRpmSteps = new();
+
+        private const int FanSpeedUnitRpm = 100;
+        private const int MaxFanSpeedUnits = 255;
+
         public bool IsSupported { get; private set; }
         public IReadOnlyList<int> AvailableFanIds => _fanIds;
         public Dictionary<int, int> MaxRpms => new(_maxRpms);
 
+        private void ReadFanTableData()
+        {
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(@"root\WMI", "SELECT * FROM LENOVO_FAN_TABLE_DATA");
+                using var results = searcher.Get();
+                foreach (ManagementObject instance in results)
+                {
+                    using (instance)
+                    {
+                        var fanId = Convert.ToInt32(instance["Fan_Id"]);
+                        var maxRpm = Convert.ToInt32(instance["CurrentFanMaxSpeed"]);
+                        var minRpm = Convert.ToInt32(instance["CurrentFanMinSpeed"]);
+                        var step = Convert.ToInt32(instance["FanSpeedStep"]);
+
+                        if (maxRpm > 0)
+                        {
+                            _tableMaxRpms[fanId] = _tableMaxRpms.TryGetValue(fanId, out var knownMax) ? Math.Max(knownMax, maxRpm) : maxRpm;
+                        }
+
+                        if (minRpm > 0)
+                        {
+                            _tableMinRpms[fanId] = _tableMinRpms.TryGetValue(fanId, out var knownMin) ? Math.Max(knownMin, minRpm) : minRpm;
+                        }
+
+                        if (step > 0)
+                        {
+                            _tableRpmSteps[fanId] = _tableRpmSteps.TryGetValue(fanId, out var knownStep) ? Math.Max(knownStep, step) : step;
+                        }
+
+                        Logger.Debug($"Firmware fan table: fanId={fanId} min={minRpm} max={maxRpm} step={step}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"Firmware fan table unavailable: {ex.Message}");
+            }
+        }
+
+        private bool _initialized;
+
         public async Task InitializeAsync(Dictionary<int, int> savedMaxRpms)
         {
+            if (_initialized)
+            {
+                Logger.Debug("InitializeAsync skipped, hardware already initialized");
+                return;
+            }
+
             var fanTestDataWorks = false;
             Logger.Debug("Fan discovery starting...");
+
+            ReadFanTableData();
 
             for (var fanId = 0; fanId <= 5; fanId++)
             {
@@ -104,6 +163,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             IsSupported = await CheckSupportAsync().ConfigureAwait(false);
             Logger.Debug($"Fan discovery complete: IsSupported={IsSupported}, fans=[{string.Join(", ", _fanIds.Select(id => $"{id}({_capabilityIds[id]})"))}]");
+            _initialized = true;
         }
 
         private async Task ProbeFansAsync()
@@ -175,9 +235,22 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             return maxRpm;
         }
 
+        private static int ToFanSpeedValue(int rpm)
+        {
+            rpm = Math.Max(0, rpm);
+
+            var settings = CustomFanCurveProvider.InstanceConfigManager?.Settings;
+            if (settings == null || !settings.WriteRpmInHundreds)
+            {
+                return rpm;
+            }
+
+            return Math.Min(MaxFanSpeedUnits, (int)Math.Round(rpm / (double)FanSpeedUnitRpm));
+        }
+
         private static async Task<int> WriteAndWaitStableAsync(CapabilityID cid, int targetRpm)
         {
-            await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, targetRpm).ConfigureAwait(false);
+            await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, ToFanSpeedValue(targetRpm)).ConfigureAwait(false);
 
             int lastRead = 0;
             int stableCount = 0;
@@ -229,13 +302,41 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public int GetMaxRpm(int fanId)
         {
+            if (_tableMaxRpms.TryGetValue(fanId, out var tableMax))
+            {
+                return tableMax;
+            }
+
             return _maxRpms.TryGetValue(fanId, out var r) ? r : 6400;
         }
 
         public int GetMinRpm(int fanId)
         {
-            return _minRpms.TryGetValue(fanId, out var r) ? r : 1000;
+            int rpm;
+            if (_tableMinRpms.TryGetValue(fanId, out var tableMin) && tableMin > 0)
+            {
+                rpm = tableMin;
+            }
+            else if (_minRpms.TryGetValue(fanId, out var probed))
+            {
+                rpm = probed;
+            }
+            else
+            {
+                int percent = CustomFanCurveProvider.InstanceConfigManager?.Settings?.MinimumSpeedPercent ?? 10;
+                rpm = (int)Math.Round(GetMaxRpm(fanId) * Math.Clamp(percent, 0, 100) / 100.0);
+            }
+
+            int step = GetRpmStep(fanId);
+            if (step > 1 && rpm > 0)
+            {
+                rpm = (int)Math.Ceiling(rpm / (double)step) * step;
+            }
+
+            return rpm;
         }
+
+        public int GetRpmStep(int fanId) => _tableRpmSteps.TryGetValue(fanId, out var step) && step > 0 ? step : 1;
 
         public async Task SetFanRpmAsync(int fanId, int rpm)
         {
@@ -244,7 +345,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 return;
             }
 
-            await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, Math.Max(0, rpm)).ConfigureAwait(false);
+            await WMI.LenovoOtherMethod.SetFeatureValueAsync(cid, ToFanSpeedValue(rpm)).ConfigureAwait(false);
         }
 
         public async Task<int> GetFanRpmAsync(int fanId)
