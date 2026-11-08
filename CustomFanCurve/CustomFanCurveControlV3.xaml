@@ -275,8 +275,7 @@
                 <StackPanel>
                     <TextBlock FontSize="13" FontWeight="SemiBold"
                                Text="{x:Static res:Resource.LiveMonitor}" Margin="0,0,0,8"/>
-                    <Separator Margin="0,0,0,8" Opacity="0.3"/>
-                    <Grid Margin="0,4">
+                    <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
@@ -309,7 +308,29 @@
                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                    Text="{Binding TargetRpmDisplay}"/>
                     </Grid>
-                    <ProgressBar Height="4" Margin="0,8,0,0" Maximum="6400"
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="{x:Static res:Resource.FanRange}"/>
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Margin="12,0,0,0"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="{Binding RangeDisplay}" ToolTip="{x:Static res:Resource.FanRangeTooltip}"/>
+                    </Grid>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="{x:Static res:Resource.FanSpeedStep}"/>
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Margin="12,0,0,0"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="{Binding StepDisplay}" ToolTip="{x:Static res:Resource.FanSpeedStepTooltip}"/>
+                    </Grid>
+                    <ProgressBar Height="4" Margin="0,8,0,0" Maximum="{Binding MaxRpm}"
                                  Value="{Binding CurrentRpmValue}"/>
                 </StackPanel>
             </wpfui:Card>
