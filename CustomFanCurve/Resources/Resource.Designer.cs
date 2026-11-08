@@ -124,6 +124,24 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Write RPM in Hundreds.
+        /// </summary>
+        public static string WriteRpmInHundreds {
+            get {
+                return ResourceManager.GetString("WriteRpmInHundreds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forces fan speed writes in units of 100 RPM instead of raw RPM, for firmware that expects hundreds and would otherwise clamp to maximum..
+        /// </summary>
+        public static string WriteRpmInHundredsDesc {
+            get {
+                return ResourceManager.GetString("WriteRpmInHundredsDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Always Write RPM.
         /// </summary>
         public static string AlwaysWriteRpm {
@@ -156,6 +174,78 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         public static string ApplyToAllModesDesc {
             get {
                 return ResourceManager.GetString("ApplyToAllModesDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum Fan Speed.
+        /// </summary>
+        public static string MinimumSpeedPercent {
+            get {
+                return ResourceManager.GetString("MinimumSpeedPercent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sets the lowest fan speed the curve may command, as a percentage of maximum RPM..
+        /// </summary>
+        public static string MinimumSpeedPercentDesc {
+            get {
+                return ResourceManager.GetString("MinimumSpeedPercentDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Speed Step.
+        /// </summary>
+        public static string FanSpeedStep {
+            get {
+                return ResourceManager.GetString("FanSpeedStep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accepts 0 to 100. A value of 0 disables the floor and allows the fan to stop. On models that report their own minimum speed, that value applies instead..
+        /// </summary>
+        public static string MinimumSpeedPercentTooltip {
+            get {
+                return ResourceManager.GetString("MinimumSpeedPercentTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable only if fan speed writes drive the fan to maximum. Required on models that measure fan speed in units of 100 RPM rather than raw RPM..
+        /// </summary>
+        public static string WriteRpmInHundredsTooltip {
+            get {
+                return ResourceManager.GetString("WriteRpmInHundredsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lowest and highest speed this fan can be commanded to, as reported by the hardware..
+        /// </summary>
+        public static string FanRangeTooltip {
+            get {
+                return ResourceManager.GetString("FanRangeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Speed changes in increments of this many RPM..
+        /// </summary>
+        public static string FanSpeedStepTooltip {
+            get {
+                return ResourceManager.GetString("FanSpeedStepTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fan Range.
+        /// </summary>
+        public static string FanRange {
+            get {
+                return ResourceManager.GetString("FanRange", resourceCulture);
             }
         }
         

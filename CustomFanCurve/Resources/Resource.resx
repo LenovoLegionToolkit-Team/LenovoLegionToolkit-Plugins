@@ -144,6 +144,12 @@
   <data name="AlwaysWriteRpmDesc" xml:space="preserve">
     <value>Forces writing the target RPM to the EC on every calculation cycle, regardless of speed changes.</value>
   </data>
+  <data name="WriteRpmInHundreds" xml:space="preserve">
+    <value>Write RPM in Hundreds</value>
+  </data>
+  <data name="WriteRpmInHundredsDesc" xml:space="preserve">
+    <value>Forces fan speed writes in units of 100 RPM instead of raw RPM, for firmware that expects hundreds and would otherwise clamp to maximum.</value>
+  </data>
   <data name="ApplyToAllModes" xml:space="preserve">
     <value>Apply to All Power Modes</value>
   </data>
@@ -173,6 +179,30 @@
   </data>
   <data name="CriticalTemp" xml:space="preserve">
     <value>Critical Temperature</value>
+  </data>
+  <data name="FanRange" xml:space="preserve">
+    <value>Fan Range</value>
+  </data>
+  <data name="MinimumSpeedPercent" xml:space="preserve">
+    <value>Minimum Fan Speed</value>
+  </data>
+  <data name="MinimumSpeedPercentDesc" xml:space="preserve">
+    <value>Sets the lowest fan speed the curve may command, as a percentage of maximum RPM.</value>
+  </data>
+  <data name="MinimumSpeedPercentTooltip" xml:space="preserve">
+    <value>Accepts 0 to 100. A value of 0 disables the floor and allows the fan to stop. On models that report their own minimum speed, that value applies instead.</value>
+  </data>
+  <data name="WriteRpmInHundredsTooltip" xml:space="preserve">
+    <value>Enable only if fan speed writes drive the fan to maximum. Required on models that measure fan speed in units of 100 RPM rather than raw RPM.</value>
+  </data>
+  <data name="FanRangeTooltip" xml:space="preserve">
+    <value>Lowest and highest speed this fan can be commanded to, as reported by the hardware.</value>
+  </data>
+  <data name="FanSpeedStepTooltip" xml:space="preserve">
+    <value>Speed changes in increments of this many RPM.</value>
+  </data>
+  <data name="FanSpeedStep" xml:space="preserve">
+    <value>Speed Step</value>
   </data>
   <data name="CriticalTempDesc" xml:space="preserve">
     <value>Enforces maximum fan speed regardless of the current fan curve once this temperature threshold (°C) is reached.</value>

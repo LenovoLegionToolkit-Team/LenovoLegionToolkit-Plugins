@@ -75,11 +75,11 @@
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
                                             <StackPanel Margin="0,0,16,0">
-                                                <TextBlock Text="{x:Static res:Resource.UiUpdateInterval}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                                <TextBlock Text="{x:Static res:Resource.UiUpdateIntervalDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{x:Static res:Resource.WriteRpmInHundreds}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.WriteRpmInHundredsDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                             </StackPanel>
                                         </wpfui:CardControl.Header>
-                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding UiUpdateIntervalMs, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding WriteRpmInHundreds}" ToolTip="{x:Static res:Resource.WriteRpmInHundredsTooltip}"/>
                                     </wpfui:CardControl>
                                     
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
@@ -101,6 +101,26 @@
                                          </wpfui:CardControl.Header>
                                          <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding MinimumRpmChangeToApply, UpdateSourceTrigger=PropertyChanged}"/>
                                      </wpfui:CardControl>
+                                    
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.MinimumSpeedPercent}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.MinimumSpeedPercentDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding MinimumSpeedPercent, UpdateSourceTrigger=LostFocus}" ToolTip="{x:Static res:Resource.MinimumSpeedPercentTooltip}"/>
+                                    </wpfui:CardControl>
+                                    
+                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
+                                        <wpfui:CardControl.Header>
+                                            <StackPanel Margin="0,0,16,0">
+                                                <TextBlock Text="{x:Static res:Resource.UiUpdateInterval}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                                <TextBlock Text="{x:Static res:Resource.UiUpdateIntervalDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </wpfui:CardControl.Header>
+                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding UiUpdateIntervalMs, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </wpfui:CardControl>
                                     
                                     <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
                                         <wpfui:CardControl.Header>
