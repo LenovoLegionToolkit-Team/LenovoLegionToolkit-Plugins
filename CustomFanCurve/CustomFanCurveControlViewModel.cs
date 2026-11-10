@@ -22,6 +22,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private CancellationTokenSource? _saveCts;
         private bool _isEnforcingMonotonicity;
         private CurveNode? _nodeToSelectNext;
+        private (bool Enabled, int MinTemp, int MaxTemp, int Percent) _safetySignature;
         private bool IsThermalSafetyNetEnabled => _configManager.Settings.EnableThermalSafetyNet;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -56,16 +57,20 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         private void EnforceMonotonicity(CurveNode changedNode, string propertyName)
         {
-            if (!IsThermalSafetyNetEnabled) return;
             if (CurveNodes.Count < 2) return;
 
             var otherNodes = CurveNodes.Where(n => n != changedNode).OrderBy(n => n.Temperature).ToList();
             var prevNode = otherNodes.LastOrDefault(n => n.Temperature <= changedNode.Temperature);
             var nextNode = otherNodes.FirstOrDefault(n => n.Temperature >= changedNode.Temperature);
 
-            int safeMinPercent = CustomFanCurveCalculator.GetSafeMinPercent(changedNode.Temperature);
-            int minPercent = Math.Max(safeMinPercent, prevNode != null ? prevNode.TargetPercent : 0);
+            int minPercent = prevNode != null ? prevNode.TargetPercent : 0;
+            if (IsThermalSafetyNetEnabled)
+            {
+                minPercent = Math.Max(minPercent, CustomFanCurveCalculator.GetSafeMinPercent(changedNode.Temperature));
+            }
+
             int maxPercent = nextNode != null ? nextNode.TargetPercent : 100;
+            if (minPercent > maxPercent) maxPercent = minPercent;
 
             if (propertyName == nameof(CurveNode.TargetPercent) || propertyName == nameof(CurveNode.Temperature))
             {
@@ -73,6 +78,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 if (changedNode.TargetPercent != clamped)
                 {
                     changedNode.TargetPercent = clamped;
+                }
+
+                int floor = changedNode.TargetPercent;
+                foreach (var node in otherNodes.Where(n => n.Temperature > changedNode.Temperature).OrderBy(n => n.Temperature))
+                {
+                    if (node.TargetPercent < floor)
+                    {
+                        node.TargetPercent = floor;
+                    }
+
+                    floor = node.TargetPercent;
                 }
             }
         }
@@ -218,13 +234,10 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 maxPercent = nextNode != null ? nextNode.TargetPercent : 100;
             }
 
-            targetPercent = Math.Clamp(targetPercent, minPercent, maxPercent);
+            targetPercent = Math.Clamp(targetPercent, minPercent, Math.Max(minPercent, maxPercent));
 
             display.Node.Temperature = temperature;
             display.Node.TargetPercent = targetPercent;
-
-            UpdateGraphPointsFromNodes();
-            if (_graphWidth > 0 && _graphHeight > 0) { display.DisplayX = temperature / 100.0 * _graphWidth; display.DisplayY = (1.0 - targetPercent / 100.0) * _graphHeight; }   
         }
 
         private void AddNode()
@@ -269,6 +282,14 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private void OnMonitoringUpdated(int fanId, FanMonitoringSnapshot snapshot)
         {
             if (fanId != _fanId) return;
+
+            var safetySettings = _configManager.Settings;
+            var safetySignature = (safetySettings.EnableThermalSafetyNet, safetySettings.SafeMinTemp, safetySettings.SafeMaxTemp, safetySettings.SafeMaxPercentAtMaxTemp);
+            if (safetySignature != _safetySignature)
+            {
+                _safetySignature = safetySignature;
+                UpdateGraphPointsFromNodes();
+            }
             DisplayTemp = $"{snapshot.Temperature:F0} °C";
             ActualRpmDisplay = $"{snapshot.Rpm} RPM";
             TargetRpmDisplay = $"{snapshot.TargetRpm} RPM";

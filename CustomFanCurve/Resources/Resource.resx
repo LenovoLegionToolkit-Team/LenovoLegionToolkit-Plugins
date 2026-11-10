@@ -186,6 +186,9 @@
   <data name="MinimumSpeedPercent" xml:space="preserve">
     <value>Minimum Fan Speed</value>
   </data>
+  <data name="SafetyFloorLegend" xml:space="preserve">
+    <value>Thermal safety floor</value>
+  </data>
   <data name="MinimumSpeedPercentDesc" xml:space="preserve">
     <value>Sets the lowest fan speed the curve may command, as a percentage of maximum RPM.</value>
   </data>
@@ -193,7 +196,7 @@
     <value>Accepts 0 to 100. A value of 0 disables the floor and allows the fan to stop. On models that report their own minimum speed, that value applies instead.</value>
   </data>
   <data name="WriteRpmInHundredsTooltip" xml:space="preserve">
-    <value>Enable only if fan speed writes drive the fan to maximum. Required on models that measure fan speed in units of 100 RPM rather than raw RPM.</value>
+    <value>Enable only if fan speed writes drive the fan to maximum. Required on models whose fan control takes values in units of 100 RPM while reporting speeds in raw RPM.</value>
   </data>
   <data name="FanRangeTooltip" xml:space="preserve">
     <value>Lowest and highest speed this fan can be commanded to, as reported by the hardware.</value>

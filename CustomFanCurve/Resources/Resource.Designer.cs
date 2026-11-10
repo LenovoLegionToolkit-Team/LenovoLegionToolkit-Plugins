@@ -187,6 +187,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Thermal safety floor.
+        /// </summary>
+        public static string SafetyFloorLegend {
+            get {
+                return ResourceManager.GetString("SafetyFloorLegend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sets the lowest fan speed the curve may command, as a percentage of maximum RPM..
         /// </summary>
         public static string MinimumSpeedPercentDesc {
@@ -214,7 +223,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable only if fan speed writes drive the fan to maximum. Required on models that measure fan speed in units of 100 RPM rather than raw RPM..
+        ///   Looks up a localized string similar to Enable only if fan speed writes drive the fan to maximum. Required on models whose fan control takes values in units of 100 RPM while reporting speeds in raw RPM..
         /// </summary>
         public static string WriteRpmInHundredsTooltip {
             get {

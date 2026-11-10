@@ -223,6 +223,16 @@
                         </Border>
                     </Grid>
                 </Canvas>
+
+                <StackPanel x:Name="_safetyLegend" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top"
+                            Margin="10,8,0,0" IsHitTestVisible="False" Visibility="Collapsed">
+                    <Canvas Width="18" Height="8" VerticalAlignment="Center">
+                        <Line X1="0" Y1="4" X2="18" Y2="4" Stroke="{DynamicResource SystemFillColorCriticalBrush}"
+                              StrokeThickness="1.5" StrokeDashArray="4 3" Opacity="0.75"/>
+                    </Canvas>
+                    <TextBlock Text="{x:Static res:Resource.SafetyFloorLegend}" Margin="6,0,0,0" FontSize="10"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
             </Grid>
 
             <Grid Grid.Column="1" Grid.Row="1" Margin="0,6,0,0">

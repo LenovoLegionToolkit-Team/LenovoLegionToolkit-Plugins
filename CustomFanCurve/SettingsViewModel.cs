@@ -551,7 +551,15 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         public int SafeMaxPercentAtMaxTemp
         {
             get => _safeMaxPercentAtMaxTemp;
-            set { if (_safeMaxPercentAtMaxTemp != value) { _safeMaxPercentAtMaxTemp = value; OnPropertyChanged(); } }
+            set
+            {
+                int clamped = Math.Clamp(value, 0, 100);
+                if (_safeMaxPercentAtMaxTemp != clamped)
+                {
+                    _safeMaxPercentAtMaxTemp = clamped;
+                    OnPropertyChanged();
+                }
+            }
         }
 
         private bool _enableAcousticOffset;

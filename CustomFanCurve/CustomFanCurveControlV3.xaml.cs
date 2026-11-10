@@ -19,6 +19,11 @@ public partial class CustomFanCurveControlV3 : UserControl
     {
         InitializeComponent();
         Loaded += (s, e) => RequestDraw();
+        IsVisibleChanged += (s, e) =>
+        {
+            if (IsVisible)
+                RequestDraw();
+        };
         DataContextChanged += OnDataContextChanged;
     }
 
@@ -110,6 +115,35 @@ public partial class CustomFanCurveControlV3 : UserControl
             vLine.SetResourceReference(Shape.StrokeProperty, "ControlStrokeColorDefaultBrush");
             _canvas.Children.Add(vLine);
         }
+
+        var settings = CustomFanCurveProvider.InstanceConfigManager?.Settings;
+        bool safetyFloorDrawn = false;
+        if (settings is { EnableThermalSafetyNet: true })
+        {
+            var floorPoints = new PointCollection();
+            for (int temperature = (int)settings.SafeMinTemp; temperature <= 100; temperature++)
+            {
+                int percent = CustomFanCurveCalculator.GetSafeMinPercent(temperature);
+                floorPoints.Add(new Point(temperature / 100.0 * w, (1.0 - percent / 100.0) * h));
+            }
+
+            if (floorPoints.Count >= 2)
+            {
+                var floor = new Polyline
+                {
+                    Points = floorPoints,
+                    StrokeThickness = 1.5,
+                    StrokeDashArray = new DoubleCollection { 4, 3 },
+                    Opacity = 0.75,
+                    IsHitTestVisible = false
+                };
+                floor.SetResourceReference(Shape.StrokeProperty, "SystemFillColorCriticalBrush");
+                _canvas.Children.Add(floor);
+                safetyFloorDrawn = true;
+            }
+        }
+
+        _safetyLegend.Visibility = safetyFloorDrawn ? Visibility.Visible : Visibility.Collapsed;
 
         var px = points.Select(p => new Point(p.X * w, p.Y * h)).ToList();
 

@@ -34,7 +34,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private readonly Dictionary<int, int> _tableRpmSteps = new();
 
         private const int FanSpeedUnitRpm = 100;
-        private const int MaxFanSpeedUnits = 255;
 
         public bool IsSupported { get; private set; }
         public IReadOnlyList<int> AvailableFanIds => _fanIds;
@@ -245,7 +244,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 return rpm;
             }
 
-            return Math.Min(MaxFanSpeedUnits, (int)Math.Round(rpm / (double)FanSpeedUnitRpm));
+            return (int)Math.Round(rpm / (double)FanSpeedUnitRpm);
         }
 
         private static async Task<int> WriteAndWaitStableAsync(CapabilityID cid, int targetRpm)
