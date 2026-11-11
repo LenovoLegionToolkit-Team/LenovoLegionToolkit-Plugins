@@ -38,11 +38,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
         private int _activeSensorIntervalMs;
 
         private readonly ConcurrentDictionary<int, int> _lastAppliedRpm = new();
-        private readonly ConcurrentDictionary<int, float> _lastTemp = new();
-        private readonly ConcurrentDictionary<int, float> _lastPower = new();
         private readonly ConcurrentDictionary<int, int> _lastCalcRpm = new();
         private readonly ConcurrentDictionary<int, long> _lastCalcTick = new();
-        private readonly ConcurrentDictionary<int, string> _lastFingerprint = new();
         private readonly ConcurrentDictionary<int, long> _lastUiUpdateTicks = new();
         private readonly ConcurrentDictionary<int, double> _emaTemp = new();
         private readonly ConcurrentDictionary<int, int> _lastIdealRpm = new();
@@ -566,39 +563,11 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             }
 
             _lastCalcTick.TryGetValue(fanId, out var lastTick);
-            _lastTemp.TryGetValue(fanId, out var lastTemp);
             _lastCalcRpm.TryGetValue(fanId, out var cachedRpm);
-
-            var elapsed = !_lastCalcTick.ContainsKey(fanId) || now - lastTick >= delayTicks;
-            var tempDelta = _lastTemp.ContainsKey(fanId) ? Math.Abs(lastTemp - calcTemp) : double.MaxValue;
-
-            var fp = string.Join("|", entry.CurveNodes.OrderBy(n => n.Temperature).Select(n => $"{n.Temperature:F1}:{n.TargetPercent}"));
-            _lastFingerprint.TryGetValue(fanId, out var lastFp);
-            if (lastFp != fp)
-            {
-                _lastFingerprint[fanId] = fp;
-                _lastTemp.TryRemove(fanId, out _);
-                _lastCalcTick.TryRemove(fanId, out _);
-                _lastWriteTick.TryRemove(fanId, out _);
-                lastTemp = 0;
-                elapsed = true;
-                Logger.Debug($"Fan{fanId}: fingerprint changed, preserving cached RPM state");
-            }
 
             bool isSteppingDown = _lastIdealRpm.ContainsKey(fanId) && _lastCalcRpm.ContainsKey(fanId) && _lastIdealRpm[fanId] < _lastCalcRpm[fanId];
 
-            _lastPower.TryGetValue(fanId, out var lastPower);
-            float currentRelevantPower = fanId == 2 ? snapshot[SensorItem.GpuPower] : snapshot[SensorItem.CpuPower];
-            var powerDelta = _lastPower.ContainsKey(fanId) ? Math.Abs(lastPower - currentRelevantPower) : double.MaxValue;
-
-            var tempThreshold = settings.EnableTemperatureDeltaThreshold ? settings.TemperatureDeltaThreshold : 0.0;
-            var powerThreshold = settings.EnablePowerDeltaThreshold ? settings.PowerDeltaThreshold : 0.0;
-
-            var needRecalc = !_lastTemp.ContainsKey(fanId) || !_lastCalcRpm.ContainsKey(fanId) || isSteppingDown
-                || (elapsed && (tempDelta >= tempThreshold || powerDelta >= powerThreshold
-                    || !_lastAppliedRpm.ContainsKey(fanId) || _lastAppliedRpm[fanId] != cachedRpm));
-            if (!elapsed && _lastCalcRpm.ContainsKey(fanId) && !isSteppingDown)
-                needRecalc = false;
+            var needRecalc = !_lastCalcTick.ContainsKey(fanId) || now - lastTick >= delayTicks;
 
             int targetRpm;
             if (needRecalc)
@@ -668,8 +637,6 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 }
 
                 _lastIdealRpm[fanId] = idealRpm;
-                _lastTemp[fanId] = calcTemp;
-                _lastPower[fanId] = currentRelevantPower;
                 _lastCalcRpm[fanId] = targetRpm;
                 _lastCalcTick[fanId] = now;
 
@@ -862,10 +829,8 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 else if (settings.ClearCachedStateWhenLeavingCustomMode && !shouldEnable && !_isFullSpeed)
                 {
                     _lastAppliedRpm.Clear();
-                    _lastTemp.Clear();
                     _lastCalcRpm.Clear();
                     _lastCalcTick.Clear();
-                    _lastFingerprint.Clear();
                 }
             }
             finally

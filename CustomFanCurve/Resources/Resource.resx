@@ -273,12 +273,6 @@
   <data name="EnableMinimumRpmChangeToApplyDesc" xml:space="preserve">
     <value>Suppresses WMI updates if the change in target RPM is below the specified threshold.</value>
   </data>
-  <data name="EnablePowerDeltaThreshold" xml:space="preserve">
-    <value>Enable Power Delta Filter</value>
-  </data>
-  <data name="EnablePowerDeltaThresholdDesc" xml:space="preserve">
-    <value>Filters out recalculations if the power draw change is smaller than the threshold.</value>
-  </data>
   <data name="EnablePredictiveEngine" xml:space="preserve">
     <value>Predictive Engine</value>
   </data>
@@ -293,12 +287,6 @@
   </data>
   <data name="EnableStepDownGlide" xml:space="preserve">
     <value>Step-Down Gliding</value>
-  </data>
-  <data name="EnableTemperatureDeltaThreshold" xml:space="preserve">
-    <value>Enable Temperature Delta Filter</value>
-  </data>
-  <data name="EnableTemperatureDeltaThresholdDesc" xml:space="preserve">
-    <value>Filters out recalculations if the temperature change is smaller than the threshold.</value>
   </data>
   <data name="EnableThermalSafetyNet" xml:space="preserve">
     <value>Thermal Safety Net</value>
@@ -374,12 +362,6 @@
   </data>
   <data name="ModeSwitchTitle" xml:space="preserve">
     <value>Mode Switch Behavior</value>
-  </data>
-  <data name="PowerDeltaThreshold" xml:space="preserve">
-    <value>Power Delta Threshold</value>
-  </data>
-  <data name="PowerDeltaThresholdDesc" xml:space="preserve">
-    <value>Minimum change in power consumption (W) required to trigger a recalculation.</value>
   </data>
   <data name="PredictiveEngine" xml:space="preserve">
     <value>Predictive Engine</value>
@@ -543,12 +525,6 @@ With spin-up boost enabled, the system briefly runs the fan at a higher RPM befo
   </data>
   <data name="TargetSpeed" xml:space="preserve">
     <value>Target Speed</value>
-  </data>
-  <data name="TempDeltaThreshold" xml:space="preserve">
-    <value>Temperature Change Threshold</value>
-  </data>
-  <data name="TempDeltaThresholdDesc" xml:space="preserve">
-    <value>Minimum temperature change (°C) required to trigger a fan speed recalculation.</value>
   </data>
   <data name="Temperature" xml:space="preserve">
     <value>Temperature</value>

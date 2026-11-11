@@ -49,46 +49,6 @@
                                         </wpfui:CardControl.Header>
                                         <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding CalculationDelayMs, UpdateSourceTrigger=PropertyChanged}"/>
                                     </wpfui:CardControl>
-                                    
-                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
-                                        <wpfui:CardControl.Header>
-                                            <StackPanel Margin="0,0,16,0">
-                                                <TextBlock Text="{x:Static res:Resource.EnableTemperatureDeltaThreshold}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                                <TextBlock Text="{x:Static res:Resource.EnableTemperatureDeltaThresholdDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </wpfui:CardControl.Header>
-                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding EnableTemperatureDeltaThreshold}"/>
-                                    </wpfui:CardControl>
-
-                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding EnableTemperatureDeltaThreshold}">
-                                        <wpfui:CardControl.Header>
-                                            <StackPanel Margin="0,0,16,0">
-                                                <TextBlock Text="{x:Static res:Resource.TempDeltaThreshold}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                                <TextBlock Text="{x:Static res:Resource.TempDeltaThresholdDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </wpfui:CardControl.Header>
-                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding TemperatureDeltaThreshold}"/>
-                                    </wpfui:CardControl>
-                                    
-                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12">
-                                        <wpfui:CardControl.Header>
-                                            <StackPanel Margin="0,0,16,0">
-                                                <TextBlock Text="{x:Static res:Resource.EnablePowerDeltaThreshold}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                                <TextBlock Text="{x:Static res:Resource.EnablePowerDeltaThresholdDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </wpfui:CardControl.Header>
-                                        <wpfui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding EnablePowerDeltaThreshold}"/>
-                                    </wpfui:CardControl>
-
-                                    <wpfui:CardControl Margin="0,0,0,8" Padding="16,12" IsEnabled="{Binding EnablePowerDeltaThreshold}">
-                                        <wpfui:CardControl.Header>
-                                            <StackPanel Margin="0,0,16,0">
-                                                <TextBlock Text="{x:Static res:Resource.PowerDeltaThreshold}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                                <TextBlock Text="{x:Static res:Resource.PowerDeltaThresholdDesc}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </wpfui:CardControl.Header>
-                                        <wpfui:TextBox Width="80" VerticalAlignment="Center" local:TextBoxBehavior.NumericOnly="True" Text="{Binding PowerDeltaThreshold, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </wpfui:CardControl>
                                 
         </StackPanel>
     </wpfui:DynamicScrollViewer>

@@ -240,12 +240,6 @@
   <data name="EnableMinimumRpmChangeToApplyDesc" xml:space="preserve">
     <value>若风扇目标转速变化量小于设定阈值，则跳过写入 WMI。</value>
   </data>
-  <data name="EnablePowerDeltaThreshold" xml:space="preserve">
-    <value>启用功率变化过滤</value>
-  </data>
-  <data name="EnablePowerDeltaThresholdDesc" xml:space="preserve">
-    <value>若功耗变化小于阈值，则跳过重新计算风扇转速。</value>
-  </data>
   <data name="EnablePredictiveEngine" xml:space="preserve">
     <value>预测引擎</value>
   </data>
@@ -260,12 +254,6 @@
   </data>
   <data name="EnableStepDownGlide" xml:space="preserve">
     <value>降速平滑</value>
-  </data>
-  <data name="EnableTemperatureDeltaThreshold" xml:space="preserve">
-    <value>启用温度变化过滤</value>
-  </data>
-  <data name="EnableTemperatureDeltaThresholdDesc" xml:space="preserve">
-    <value>若温度变化小于阈值，则跳过重新计算风扇转速。</value>
   </data>
   <data name="EnableThermalSafetyNet" xml:space="preserve">
     <value>温度安全网</value>
@@ -341,12 +329,6 @@
   </data>
   <data name="ModeSwitchTitle" xml:space="preserve">
     <value>模式切换行为</value>
-  </data>
-  <data name="PowerDeltaThreshold" xml:space="preserve">
-    <value>功耗变化阈值</value>
-  </data>
-  <data name="PowerDeltaThresholdDesc" xml:space="preserve">
-    <value>触发风扇转速重新计算所需的最小功耗变化量 (W)。</value>
   </data>
   <data name="PredictiveEngine" xml:space="preserve">
     <value>预测引擎</value>
@@ -510,12 +492,6 @@
   </data>
   <data name="TargetSpeed" xml:space="preserve">
     <value>目标转速</value>
-  </data>
-  <data name="TempDeltaThreshold" xml:space="preserve">
-    <value>温度变化阈值</value>
-  </data>
-  <data name="TempDeltaThresholdDesc" xml:space="preserve">
-    <value>触发风扇转速重新计算所需的最小温度变化量（°C）。</value>
   </data>
   <data name="Temperature" xml:space="preserve">
     <value>温度</value>
