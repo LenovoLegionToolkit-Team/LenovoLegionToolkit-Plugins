@@ -41,7 +41,17 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             [2] = (Fan2TableAddress, Fan2RpmAddress),
         };
 
-        private readonly Dictionary<byte, (ushort Address, byte Value)[]> _stockTables = new();
+        // Stock tables of this EC per power mode register value (2 quiet, 0 balance, 1 performance and custom):
+        // fan speeds (x100 RPM), CPU max/min temperatures and number of points
+        private static readonly Dictionary<byte, (byte[] Speeds, byte[] CpuMax, byte[] CpuMin, int Size)> StockTables = new()
+        {
+            [2] = (new byte[] { 0, 17, 19, 21, 23, 26, 29, 35, 37 }, new byte[] { 56, 56, 56, 60, 66, 72, 87, 91, 127 }, new byte[] { 0, 52, 52, 52, 56, 62, 68, 83, 87 }, 9),
+            [0] = (new byte[] { 0, 17, 19, 21, 23, 26, 29, 35, 42 }, new byte[] { 56, 56, 56, 60, 66, 72, 78, 90, 127 }, new byte[] { 0, 52, 52, 52, 56, 62, 68, 72, 85 }, 9),
+            [1] = (new byte[] { 0, 17, 19, 21, 23, 26, 29, 35, 42, 45 }, new byte[] { 56, 56, 56, 60, 66, 72, 80, 87, 90, 127 }, new byte[] { 0, 52, 52, 52, 56, 62, 68, 76, 84, 87 }, 10),
+        };
+        private static readonly byte[] StockFanlessProtection = { 37, 41, 46, 0, 33, 38, 41 };
+        private const byte StockAcceleration = 2;
+
         private readonly object _lock = new();
         private EmbeddedController? _ec;
 
@@ -88,10 +98,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
             var speed = (byte)Math.Clamp((int)Math.Round(rpm / (double)RpmStep), 0, MaxRpm / RpmStep);
 
             lock (_lock)
-            {
-                SaveStockTable();
                 Write(BuildTable(fan.Table, speed));
-            }
 
             return Task.CompletedTask;
         }
@@ -112,9 +119,9 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
             lock (_lock)
             {
-                var mode = _ec.ReadByte(PowerModeAddress);
-                if (_stockTables.TryGetValue(mode, out var stock) && IsOwnTable())
-                    Write(stock.Reverse());
+                // Writing the stock table back is idempotent: it also covers a partial write or a table left by a previous instance
+                if (StockTables.TryGetValue(_ec.ReadByte(PowerModeAddress), out var stock))
+                    Write(BuildStockTable(stock).Reverse());
             }
 
             return Task.CompletedTask;
@@ -137,21 +144,26 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
                 yield return ((ushort)(CpuMinTemperatureAddress + i), (byte)Math.Max(0, i - 2));
         }
 
-        // The EC reloads its own table on every power mode change: keep one copy per mode to restore it
-        private void SaveStockTable()
+        private static IEnumerable<(ushort Address, byte Value)> BuildStockTable((byte[] Speeds, byte[] CpuMax, byte[] CpuMin, int Size) stock)
         {
-            var mode = _ec!.ReadByte(PowerModeAddress);
-            if (_stockTables.ContainsKey(mode) || IsOwnTable())
-                return;
+            byte At(byte[] values, int i) => i < values.Length ? values[i] : (byte)0;
 
-            var addresses = BuildTable(Fan1TableAddress, 0).Select(e => e.Address)
-                .Concat(Enumerable.Range(0, TablePoints).Select(i => (ushort)(Fan2TableAddress + i)))
-                .Distinct();
-            _stockTables[mode] = addresses.Select(a => (a, _ec.ReadByte(a))).ToArray();
-            Logger.Debug($"EC fan hardware: stock table saved for power mode {mode}");
+            for (var i = 0; i < TablePoints; i++)
+                yield return ((ushort)(AccelerationAddress + i), i < stock.Size ? StockAcceleration : (byte)0);
+            for (var i = 0; i < TablePoints; i++)
+                yield return ((ushort)(DecelerationAddress + i), i < stock.Size ? StockAcceleration : (byte)0);
+            for (var i = 0; i < FanlessProtectionAddresses.Length; i++)
+                yield return (FanlessProtectionAddresses[i], StockFanlessProtection[i]);
+            foreach (var fanTableAddress in new[] { Fan1TableAddress, Fan2TableAddress })
+            {
+                for (var i = 0; i < TablePoints; i++)
+                    yield return ((ushort)(fanTableAddress + i), At(stock.Speeds, i));
+            }
+            for (var i = 0; i < TablePoints; i++)
+                yield return ((ushort)(CpuMaxTemperatureAddress + i), At(stock.CpuMax, i));
+            for (var i = 0; i < TablePoints; i++)
+                yield return ((ushort)(CpuMinTemperatureAddress + i), At(stock.CpuMin, i));
         }
-
-        private bool IsOwnTable() => _ec!.ReadByte(CpuMaxTemperatureAddress) == 0;
 
         private void Write(IEnumerable<(ushort Address, byte Value)> table)
         {
