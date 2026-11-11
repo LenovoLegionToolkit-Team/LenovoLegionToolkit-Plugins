@@ -75,7 +75,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
     public class CustomFanCurveProvider : IExtensionProvider, IDisposable
     {
-        private readonly CustomFanHardware _hardware;
+        private readonly ICustomFanHardware _hardware;
 
         public static CustomFanCurveConfigManager? InstanceConfigManager { get; private set; }
         public CustomFanCurveConfigManager ConfigManager { get; private set; }
@@ -88,7 +88,7 @@ namespace LenovoLegionToolkit.Plugin.CustomFanCurve
 
         public CustomFanCurveProvider()
         {
-            _hardware = new CustomFanHardware();
+            _hardware = EcFanHardware.IsAvailable() ? new EcFanHardware() : new CustomFanHardware();
         }
 
         public void Initialize(IExtensionContext context)
